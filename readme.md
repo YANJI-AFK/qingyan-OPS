@@ -184,7 +184,7 @@ tar -xf C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 -C C:\sherpa-tts
 
 - 创建登录用户 `ai_ops_user`，设置密码为 `Ops1234`，并授予其对 `OpsCenter` 数据库的访问权限。
 - 使用 SQL Server Management Studio（SSMS）还原数据库备份：右键「数据库」→「还原数据库」，选择提供的 `OpsCenter.bak` 备份文件完成还原。
-- 修改 `backend/db_service.py` 中的连接配置（第 26-34 行）。
+- 连接配置已内置在 `backend/db_service.py`（第 26-34 行）：`127.0.0.1 / OpsCenter / ai_ops_user / Ops1234`，与上一步创建的用户一致，**无需修改**。
 - 数据库还原完成后即可正常使用，无需手动执行建表和种子数据脚本。
 
 ### 5. 安装 Ollama 并拉取模型
