@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 >nul
 cd /d "%~dp0"
 title QingyanOPS - Quick Start
@@ -14,20 +15,21 @@ echo      2. Install backend dependencies
 echo      3. Check sherpa-onnx offline TTS model
 echo      4. Check Node.js ^& install frontend dependencies
 echo      5. Check Ollama ^& pull model qwen3:8b
-echo      6. Test model connectivity
-echo      7. Check database ^& auto-restore from backup
-echo      8. Start backend (port 5000) ^& frontend (port 5173)
+echo      6. Ensure Ollama service is running
+echo      7. Test model connectivity
+echo      8. Check database ^& auto-restore from backup
+echo      9. Start backend (port 5000) ^& frontend (port 5173)
 echo.
 echo  ============================================================
 echo.
 
-echo  [1/10] Checking Python ...
+echo  [1/11] Checking Python ...
 where python >nul 2>nul
 if errorlevel 1 goto err_python
 python --version 2>&1
 echo.
 
-echo  [2/10] Setting up virtual environment ...
+echo  [2/11] Setting up virtual environment ...
 if exist "venv\Scripts\python.exe" (
     echo         [SKIP] venv already exists.
 ) else (
@@ -38,13 +40,13 @@ if exist "venv\Scripts\python.exe" (
 )
 echo.
 
-echo  [3/10] Installing backend dependencies ...
+echo  [3/11] Installing backend dependencies ...
 venv\Scripts\python.exe -m pip install -r backend\requirements.txt --quiet --disable-pip-version-check
 if errorlevel 1 goto err_pip
 echo         [OK] Backend dependencies installed.
 echo.
 
-echo  [4/10] Checking sherpa-onnx offline TTS model ...
+echo  [4/11] Checking sherpa-onnx offline TTS model ...
 if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     echo         [SKIP] TTS model already exists.
 ) else (
@@ -64,13 +66,13 @@ if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
 )
 echo.
 
-echo  [5/10] Checking Node.js ...
+echo  [5/11] Checking Node.js ...
 where node >nul 2>nul
 if errorlevel 1 goto err_node
 node --version 2>&1
 echo.
 
-echo  [6/10] Installing frontend dependencies (npm install) ...
+echo  [6/11] Installing frontend dependencies (npm install) ...
 if exist "frontend\node_modules" (
     echo         [SKIP] node_modules already exists.
 ) else (
@@ -83,13 +85,13 @@ if exist "frontend\node_modules" (
 )
 echo.
 
-echo  [7/10] Checking Ollama ...
+echo  [7/11] Checking Ollama ...
 where ollama >nul 2>nul
 if errorlevel 1 goto err_ollama
 echo         [OK] Ollama found.
 echo.
 
-echo  [8/10] Checking model qwen3:8b ...
+echo  [8/11] Checking model qwen3:8b ...
 ollama list 2>nul | findstr /c:"qwen3:8b" >nul
 if errorlevel 1 (
     echo         Model not found. Pulling qwen3:8b ...
@@ -103,13 +105,36 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [9/10] Testing model connectivity ...
-venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hi','stream':False}, timeout=30); exit(0 if r.status_code==200 else 1)"
+echo  [9/11] Ensuring Ollama service is running ...
+REM Check if Ollama is already listening on port 11434
+curl.exe -s http://localhost:11434/api/tags >nul 2>&1
+if errorlevel 1 (
+    echo         Starting Ollama service in background ...
+    start "Ollama" /B ollama serve >nul 2>&1
+    echo         Waiting for Ollama to be ready ...
+    set /a wait_count=0
+    :wait_ollama
+    curl.exe -s http://localhost:11434/api/tags >nul 2>&1
+    if errorlevel 1 (
+        timeout /t 2 /nobreak >nul
+        set /a wait_count+=1
+        if !wait_count! lss 30 goto wait_ollama
+        echo         [WARN] Ollama still not ready after 60s, trying anyway ...
+    ) else (
+        echo         [OK] Ollama is ready.
+    )
+) else (
+    echo         [OK] Ollama already running.
+)
+echo.
+
+echo  [10/11] Testing model connectivity ...
+venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hi','stream':False}, timeout=120); exit(0 if r.status_code==200 else 1)"
 if errorlevel 1 goto err_model_test
 echo         [OK] Model responds correctly.
 echo.
 
-echo  [10/10] Database setup ...
+echo  [11/11] Database setup ...
 venv\Scripts\python.exe _db_setup.py
 if errorlevel 1 goto err_db
 echo.
