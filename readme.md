@@ -2,15 +2,15 @@
 
 # 🚀 轻言OPS — 基于大模型驱动的数字人智能助手
 
-![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-3.1-black?style=flat-square&logo=flask&logoColor=white)
-![Vue.js](https://img.shields.io/badge/Vue.js-3.5+-green?style=flat-square&logo=vue.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-2019+-CC2927?style=flat-square&logo=microsoft-sql-server&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-000000?style=flat-square&logo=ollama&logoColor=white)
-![FunASR](https://img.shields.io/badge/FunASR-Offline_ASR-FF6B35?style=flat-square)
-![ECharts](https://img.shields.io/badge/ECharts-6.0-AA344D?style=flat-square&logo=apache-echarts&logoColor=white)
-![Offline](https://img.shields.io/badge/%E8%BF%90%E8%A1%8C-%E5%85%A8%E7%A6%BB%E7%BA%BF-success?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.12%2B-1E293B?style=flat-square&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.1-1E293B?style=flat-square&logo=flask&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-3.5%2B-1E293B?style=flat-square&logo=vue.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-1E293B?style=flat-square&logo=typescript&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-2019%2B-1E293B?style=flat-square&logo=microsoft-sql-server&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-1E293B?style=flat-square&logo=ollama&logoColor=white)
+![FunASR](https://img.shields.io/badge/FunASR-Offline%20ASR-1E293B?style=flat-square)
+![ECharts](https://img.shields.io/badge/ECharts-6.0-1E293B?style=flat-square&logo=apache-echarts&logoColor=white)
+![离线运行](https://img.shields.io/badge/%E5%85%A8%E7%A6%BB%E7%BA%BF-Offline-1E293B?style=flat-square)
 
 > 运维工单管理 + 语音交互 + 3D 可视化监控大屏，一站式智能运维平台。
 
