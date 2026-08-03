@@ -1,0 +1,58 @@
+# ============ Python 虚拟环境 ============
+venv/
+env/
+.venv/
+
+# ============ Python 缓存 ============
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ============ Node 前端 ============
+node_modules/
+dist/
+.vite/
+
+# ============ 数据库备份 ============
+*.bak
+OpsCenter.bak
+
+# ============ 敏感配置 ============
+.env
+.env.local
+.env.*.local
+
+# ============ 日志与临时文件 ============
+*.log
+stdout.log
+stderr.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# ============ IDE 与编辑器 ============
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ============ 测试产物 ============
+backend/tests/test.wav
+backend/tests/test_int.wav
+backend/tests/test_result.txt
+backend/tests/__pycache__/
+
+# ============ 一次性脚本 ============
+_add_tickets.py
+_update_tags.py
+_role_extra_tags.py
+check_staff_tickets.py
+
+# ============ 旧 Mock 数据 ============
+servers.txt
+tickets.txt
