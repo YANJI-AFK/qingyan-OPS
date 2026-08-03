@@ -48,12 +48,16 @@ backend/tests/test.wav
 backend/tests/test_int.wav
 backend/tests/test_result.txt
 backend/tests/__pycache__/
+backend/tts_models/
+*.wav
 
 # ============ 一次性脚本 ============
 _add_tickets.py
 _update_tags.py
 _role_extra_tags.py
 check_staff_tickets.py
+_smoke_test_tts.py
+_install_windows_tts.bat
 
 # ============ 旧 Mock 数据 ============
 servers.txt

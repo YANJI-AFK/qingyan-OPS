@@ -2,19 +2,19 @@
 
 # 🚀 轻言OPS — 基于大模型驱动的数字人智能助手
 
-![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&logo=flask&logoColor=white)
-![Vue.js](https://img.shields.io/badge/Vue.js-3.5%2B-42B883?style=flat-square&logo=vue.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL%20Server-2019%2B-0078D4?style=flat-square&logo=microsoft-sql-server&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-000000?style=flat-square&logo=ollama&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square\&logo=python\&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.1-000000?style=flat-square\&logo=flask\&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-3.5%2B-42B883?style=flat-square\&logo=vue.js\&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square\&logo=typescript\&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-2019%2B-0078D4?style=flat-square\&logo=microsoft-sql-server\&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-000000?style=flat-square\&logo=ollama\&logoColor=white)
 ![FunASR](https://img.shields.io/badge/FunASR-Offline%20ASR-F59E0B?style=flat-square)
-![ECharts](https://img.shields.io/badge/ECharts-6.0-2563EB?style=flat-square&logo=apache-echarts&logoColor=white)
+![ECharts](https://img.shields.io/badge/ECharts-6.0-2563EB?style=flat-square\&logo=apache-echarts\&logoColor=white)
 ![离线运行](https://img.shields.io/badge/%E5%85%A8%E7%A6%BB%E7%BA%BF-Offline-10B981?style=flat-square)
 
 > 运维工单管理 + 语音交互 + 3D 可视化监控大屏，一站式智能运维平台。
 
-**GitHub 仓库**：[https://github.com/YANJI-AFK/qingyan-OPS](https://github.com/YANJI-AFK/qingyan-OPS)
+**GitHub 仓库**：<https://github.com/YANJI-AFK/qingyan-OPS>
 
 ***
 
@@ -35,16 +35,18 @@
 
 ***
 
+### ![系统主页展示](./images/系统主页.png)  系统主页展示
+
 ## 🏗️ 技术架构
 
-| 分层        | 技术选型                                          |
-| --------- | --------------------------------------------- |
-| **后端**    | Python 3.12+ / Flask 3.1 / pyodbc              |
-| **前端**    | Vue 3 + TypeScript + Vite / Pinia / ECharts 6  |
-| **数据库**   | SQL Server 2019+ / ODBC Driver 17 / `OpsCenter` |
-| **大模型**   | Ollama + `qwen3:8b`（本地推理，temperature=0.1）      |
-| **语音**    | FunASR（`paraformer-zh` 离线识别）/ edge-tts / SAPI 降级 |
-| **音频处理**  | ffmpeg（WebM → WAV 16kHz 单声道）                    |
+| 分层       | 技术选型                                             |
+| -------- | ------------------------------------------------ |
+| **后端**   | Python 3.12+ / Flask 3.1 / pyodbc                |
+| **前端**   | Vue 3 + TypeScript + Vite / Pinia / ECharts 6    |
+| **数据库**  | SQL Server 2019+ / ODBC Driver 17 / `OpsCenter`  |
+| **大模型**  | Ollama + `qwen3:8b`（本地推理，temperature=0.1）        |
+| **语音**   | FunASR（`paraformer-zh` 离线识别）/ sherpa-onnx VITS / SAPI / edge-tts |
+| **音频处理** | ffmpeg（WebM → WAV 16kHz 单声道）                     |
 
 ***
 
@@ -62,7 +64,7 @@
 
 ***
 
-## 🚀 快速开始
+## 🚀 快速启动
 
 ### 从 GitHub 获取项目
 
@@ -78,21 +80,21 @@ cd qingyan-OPS
 
 **① 安装软件**
 
-| 序号 | 需要安装 | 版本要求 | 说明                                   |
-| -- | ------- | ----------------- | ------------------------------------ |
-| 1  | Python  | 3.12+             | 安装时勾选 "Add Python to PATH"           |
-| 2  | Node.js | 22.18+ / 24.12+   | 安装时默认自动加入 PATH                      |
-| 3  | Ollama  | 最新版              | 从 <https://ollama.com> 下载安装，启动后保持运行 |
-| 4  | SQL Server | 2019+          | 含 **ODBC Driver 17 for SQL Server** 驱动 |
-| 5  | ffmpeg  | 最新稳定版            | 解压到如 `C:\ffmpeg`（FunASR 必需）           |
+| 序号 | 需要安装       | 版本要求            | 说明                                     |
+| -- | ---------- | --------------- | -------------------------------------- |
+| 1  | Python     | 3.12+           | 安装时勾选 "Add Python to PATH"             |
+| 2  | Node.js    | 22.18+ / 24.12+ | 安装时默认自动加入 PATH                         |
+| 3  | Ollama     | 最新版             | 从 <https://ollama.com> 下载安装，启动后保持运行    |
+| 4  | SQL Server | 2019+           | 含 **ODBC Driver 17 for SQL Server** 驱动 |
+| 5  | ffmpeg     | 最新稳定版           | 解压到如 `C:\ffmpeg`（FunASR 必需）            |
 
 **② 配置系统 PATH**
 
-| 需要配置  | 配置方法                                        |
-| ------ | ------------------------------------------ |
-| Python  | 安装时勾选即自动配置；未勾选则手动把安装目录加入系统 PATH             |
-| Node.js | 安装时默认自动配置                                  |
-| ffmpeg  | 手动把 `C:\ffmpeg\bin` 目录加入系统 PATH             |
+| 需要配置    | 配置方法                            |
+| ------- | ------------------------------- |
+| Python  | 安装时勾选即自动配置；未勾选则手动把安装目录加入系统 PATH |
+| Node.js | 安装时默认自动配置                       |
+| ffmpeg  | 手动把 `C:\ffmpeg\bin` 目录加入系统 PATH |
 
 配置后**重开命令行**验证是否生效：
 
@@ -104,10 +106,10 @@ ffmpeg -version
 
 **③ 准备数据库**
 
-| 序号 | 需要准备     | 说明                                                        |
-| -- | ------- | --------------------------------------------------------- |
-| 6  | 登录用户    | SQL Server 中创建 `ai_ops_user`（密码 `Ops1234`），授予 `OpsCenter` 库访问权限 |
-| 7  | 备份文件    | 将 `OpsCenter.bak` 放到项目根目录                                      |
+| 序号 | 需要准备 | 说明                                                              |
+| -- | ---- | --------------------------------------------------------------- |
+| 6  | 登录用户 | SQL Server 中创建 `ai_ops_user`（密码 `Ops1234`），授予 `OpsCenter` 库访问权限 |
+| 7  | 备份文件 | 将 `OpsCenter.bak` 放到项目根目录                                       |
 
 ### 启动方式：双击 `startup.bat`
 
@@ -265,12 +267,16 @@ npm install
 系统实现了全链路的语音交互能力：
 
 - **ASR 语音识别**：基于阿里达摩院的 FunASR（`paraformer-zh` 模型），实现完全离线的中文识别；前端上传 WebM 音频，后端经 ffmpeg 转 WAV 处理。
-- **TTS 语音合成**：优先使用 `edge-tts`（需联网），降级方案为 Windows SAPI（离线可用），支持多音色切换与 0.5x - 2.0x 语速调节。
+- **TTS 语音合成**：三引擎方案，**默认全离线**：
+  - `sherpa-onnx VITS`（离线神经网络，音质最佳，5 个中文音色，模型需下载）
+  - `Windows SAPI`（系统自带，离线兜底，自动枚举已安装语音）
+  - `edge-tts`（微软神经网络，在线，设置 `TTS_MODE=auto` 后可选）
+  - 支持多音色切换与 0.5x - 2.0x 语速调节。
 - **交互模式**：
 
-  \*\*    1.手动录音\*\*：点击控制录音，过程实时显示文字转写。
+      1.手动录音：点击控制录音，过程实时显示文字转写。
 
-  \*\*    2.连续聆听\*\*：通过 VAD 自动检测语音，静音 1.8 秒后自动结束识别。
+      2.连续聆听：通过 VAD 自动检测语音，静音 1.8 秒后自动结束识别。
 
 ***
 

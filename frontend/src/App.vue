@@ -338,7 +338,7 @@ function setSpeed(v: number) {
 
 // ========== 音色控制 ==========
 const availableVoices = ref<{ id: string; name: string; gender: string }[]>([])
-const selectedVoice = ref(localStorage.getItem('litevox_voice') || 'zh-CN-XiaoxiaoNeural')
+const selectedVoice = ref(localStorage.getItem('litevox_voice') || 'sherpa-0')
 function setVoice(v: string) {
   selectedVoice.value = v
   localStorage.setItem('litevox_voice', v)

@@ -264,7 +264,7 @@ def tts_synthesize():
         return jsonify({"error": "text 不能为空"}), 400
 
     rate = data.get("rate", -2)
-    voice = data.get("voice", "zh-CN-XiaoxiaoNeural")
+    voice = data.get("voice", "sherpa-0")
 
     try:
         from flask import Response
