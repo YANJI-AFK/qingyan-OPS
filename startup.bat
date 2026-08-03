@@ -128,10 +128,12 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [10/11] Testing model connectivity ...
-venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hi','stream':False}, timeout=120); exit(0 if r.status_code==200 else 1)"
+echo  [10/11] Preloading model qwen3:8b into memory ...
+echo         This ensures instant response on first chat.
+echo         Model will be kept in memory until Ollama restarts.
+venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hello','stream':False,'keep_alive':-1}, timeout=180); exit(0 if r.status_code==200 else 1)"
 if errorlevel 1 goto err_model_test
-echo         [OK] Model responds correctly.
+echo         [OK] Model loaded and kept in memory.
 echo.
 
 echo  [11/11] Database setup ...
