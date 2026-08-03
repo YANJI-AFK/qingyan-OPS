@@ -149,24 +149,44 @@ python -m venv venv
 venv\Scripts\activate
 cd backend
 pip install -r requirements.txt
-pip install edge-tts pywin32  # 推荐安装以获得更好的 TTS 效果
-
+pip install pywin32  # 推荐安装以获得 SAPI 语音支持（离线）
 ```
 
 - 后端核心依赖包含：`flask`, `flask-cors` (Web 框架)。
 - `requests` (调用 Ollama), `pyodbc` (SQL Server 连接)。
 - `funasr`, `modelscope` (离线语音识别)。
 - `soundfile`, `pyaudio` (音频处理与采集)。
-- `pyttsx3`, `edge-tts`, `pywin32` (语音合成与 SAPI)。
+- `sherpa-onnx`, `numpy` (离线神经网络 TTS，音质最佳)。
+- `pyttsx3`, `pywin32` (SAPI 语音合成兜底，离线)。
+- `edge-tts` (在线 TTS，可选，设置 `TTS_MODE=auto` 后启用)。
 
-### 3. 配置 SQL Server 数据库
+### 3. 下载 sherpa-onnx 离线语音模型（可选但推荐）
+
+默认的离线神经网络 TTS 需要约 115MB 的 VITS 中文模型（含 5 个音色）。**模型必须放在英文路径**（kaldifst 引擎不支持中文路径）：
+
+```powershell
+# 1. 创建英文路径模型目录
+mkdir C:\sherpa-tts
+
+# 2. 下载模型（GitHub 下载，可能需要代理）
+curl -L -o C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 ^
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2
+
+# 3. 解压
+tar -xf C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 -C C:\sherpa-tts
+```
+
+> 模型目录可通过环境变量 `SHERPA_TTS_DIR` 覆盖（默认 `C:\sherpa-tts\sherpa-onnx-vits-zh-ll`）。
+> 未下载模型时，系统自动降级为 Windows SAPI 语音（离线兜底）。
+
+### 4. 配置 SQL Server 数据库
 
 - 创建登录用户 `ai_ops_user`，设置密码为 `Ops1234`，并授予其对 `OpsCenter` 数据库的访问权限。
 - 使用 SQL Server Management Studio（SSMS）还原数据库备份：右键「数据库」→「还原数据库」，选择提供的 `OpsCenter.bak` 备份文件完成还原。
 - 修改 `backend/db_service.py` 中的连接配置（第 26-34 行）。
 - 数据库还原完成后即可正常使用，无需手动执行建表和种子数据脚本。
 
-### 4. 安装 Ollama 并拉取模型
+### 5. 安装 Ollama 并拉取模型
 
 安装 Ollama 后，拉取所需模型（默认配置为 `qwen3:8b`，见 `backend/ollama_service.py` 第 9-10 行）：
 
@@ -181,12 +201,13 @@ cd frontend
 npm install
 ```
 
-### 6. 启动服务
+### 7. 启动服务
 
 需分别在两个终端中启动前端与后端：
 
 - **启动后端**：`cd backend` -> 激活虚拟环境 -> 运行 `python app.py`。
 - **启动前端**：`cd frontend` -> 运行 `npm run dev`（默认访问 `http://localhost:5173`）。
+- **TTS 模式**：默认 `TTS_MODE=offline`（全离线，使用 sherpa-onnx / SAPI，无需设置）；如需启用在线 edge-tts 音色，启动后端前执行 `$env:TTS_MODE = "auto"`。
 
 ***
 
@@ -196,21 +217,33 @@ npm install
 
 ```text
 基于大模型驱动的数字人智能助手/
-├── backend/                           # 后端服务
-│   ├── app.py                         # 路由 + 状态机 + 意图执行
-│   ├── ollama_service.py              # LLM 服务
-│   ├── asr_service.py                 # FunASR 识别
-│   ├── tts_service.py                 # TTS 合成
-│   ├── db_service.py                  # 数据库服务
-│   ├── chat_state.py                  # 对话状态机
-│   └── tests/                         # 后端及用例测试脚本
-└── frontend/                          # 前端应用
-    ├── index.html                     # 入口 HTML
-    └── src/
-        ├── App.vue                    # 根组件
-        ├── views/                     # 各类业务页面组件 (HomePage, MonitorPage等)
-        └── components/                # 3D地球等公共组件
-
+├── startup.bat                    # 一键启动脚本（环境检查 + 依赖安装 + 启动前后端）
+├── _db_setup.py                   # 数据库检查与自动还原工具（startup.bat 调用）
+├── _install_windows_tts.bat       # Windows 中文语音包安装脚本（需管理员运行，可选）
+├── OpsCenter.bak                  # 数据库备份文件（还原数据库用）
+├── readme.md / AGENTS.md          # 使用文档 / 编码指南
+├── SYSTEM_FEATURES.md             # 系统功能特性说明
+├── images/                        # 文档截图资源
+├── backend/                       # 后端服务（Flask，端口 5000）
+│   ├── app.py                     # 路由 + 状态机 + 意图执行引擎
+│   ├── ollama_service.py          # LLM 调用 + 意图解析 + 结果润色
+│   ├── asr_service.py             # FunASR 离线语音识别
+│   ├── tts_service.py             # TTS 合成（sherpa / SAPI / edge-tts 三引擎）
+│   ├── db_service.py              # 数据库连接池 + 全部 CRUD
+│   ├── chat_state.py              # 对话状态机（FSM）
+│   ├── tts_models/                # sherpa-onnx 模型缓存目录
+│   ├── requirements.txt           # Python 依赖清单
+│   └── tests/                     # 后端测试脚本与测试用例文档
+├── frontend/                      # 前端应用（Vite，端口 5173）
+│   ├── index.html                 # 入口 HTML
+│   ├── package.json               # 前端依赖清单
+│   └── src/
+│       ├── App.vue                # 根组件（数字人浮窗 + VAD 持续聆听）
+│       ├── router/                # 路由（8 页面 + 2 子布局）
+│       ├── views/                 # 业务页面（Home/Monitor/Tickets/Staff 等 10 个）
+│       └── components/            # 3D 地球等公共组件
+└── docs/
+    └── PROMPT.md                  # LLM Prompt 设计文档
 ```
 
 ***
@@ -306,7 +339,12 @@ stateDiagram-v2
 
 基于 SQL Server 设计的核心数据表与连接池配置：
 
-- **核心表结构**：涵盖工单表 (`tickets`)、工单历史表 (`ticket_history`)、人员档案 (`staff`)、排班信息 (`staff_schedule`)、角色及标签 (`staff_roles`, `role_tags`)、监控指标 (`server_metrics`) 以及系统配置 (`sys_config`)。
+- **核心表结构**（按业务域划分）：
+  - **工单域**：工单表 (`tickets`)、工单历史表 (`ticket_history`)
+  - **人员域**：人员档案 (`staff`)、排班信息 (`staff_schedule`)
+  - **标签域**：角色表 (`staff_roles`)、角色标签 (`role_tags`)、角色-标签关联表 (`role_tag_rel`，多对多)、员工-标签关联表 (`staff_tags`，多对多)
+  - **监控域**：监控指标快照 (`metrics_snapshots`)
+  - **系统域**：系统配置 (`sys_config`)
 - **连接池性能**：固定 7个连接（`POOL_SIZE = 7`），具备连接失败自动重试 3 次及请求后自动归还机制。
 
 ***
