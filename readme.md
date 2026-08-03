@@ -225,6 +225,10 @@ npm install
 ├── readme.md / AGENTS.md          # 使用文档 / 编码指南
 ├── SYSTEM_FEATURES.md             # 系统功能特性说明
 ├── images/                        # 文档截图资源
+├── archive/                       # 归档区
+│   ├── docs/                      #   ├── 项目文档（WEEK 周报、需求修改等）
+│   └── data/                      #   └── 旧 Mock 数据（servers.txt、tickets.txt）
+├── logs/                          # 运行日志（stdout.log、stderr.log，gitignore 忽略）
 ├── backend/                       # 后端服务（Flask，端口 5000）
 │   ├── app.py                     # 路由 + 状态机 + 意图执行引擎
 │   ├── ollama_service.py          # LLM 调用 + 意图解析 + 结果润色
