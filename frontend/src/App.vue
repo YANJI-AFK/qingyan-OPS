@@ -1388,6 +1388,9 @@ body {
   justify-content: center;
   gap: 8px;
   transition: all 0.3s;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .fw-listening-btn.listening  { background: #f6ffed; color: #389e0d; }
 .fw-listening-btn.speaking   { background: #fffbe6; color: #d48806; }
