@@ -159,6 +159,8 @@ def _list_sapi_voices() -> list:
         for i in range(voices.Count):
             v = voices.Item(i)
             desc = v.GetDescription()
+            # 截短名称，避免下拉框被长文本撑破：取 " - " 前的短名
+            short = desc.split(" - ")[0].strip()
             try:
                 lang = v.GetAttribute("Language") or ""
             except Exception:
@@ -169,7 +171,7 @@ def _list_sapi_voices() -> list:
             tag = "中文" if is_zh else "多语言"
             result.append({
                 "id": f"sapi-{i}",
-                "name": f"[系统语音·{tag}] {desc}",
+                "name": f"[系统语音·{tag}] {short}",
                 "gender": gender,
             })
     except Exception as e:

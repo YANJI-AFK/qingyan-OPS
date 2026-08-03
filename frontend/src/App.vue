@@ -1615,6 +1615,9 @@ body {
 }
 .tts-voice-select {
   flex: 1;
+  min-width: 0;           /* 允许收缩，防止长音色名撑破面板 */
+  max-width: 100%;
+  width: 100%;
   padding: 4px 8px;
   border: 1px solid #d9d9d9;
   border-radius: 4px;
@@ -1623,6 +1626,9 @@ body {
   background: #fff;
   cursor: pointer;
   outline: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .tts-voice-select:focus { border-color: #1890ff; }
 
