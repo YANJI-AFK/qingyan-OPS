@@ -61,18 +61,43 @@ git clone https://github.com/YANJI-AFK/qingyan-OPS.git
 cd qingyan-OPS
 ```
 
-### 前期准备：只需安装这 6 项
+### 前期准备：分 3 步完成（共 6 项）
 
-> 双击 `startup.bat` 会自动完成虚拟环境创建、依赖安装、模型拉取、数据库还原、前后端启动。你只需确保以下 6 项已就绪：
+> 顺序很重要：**先安装软件 → 再配置系统 PATH → 最后准备数据库**，全部完成后才能双击 `startup.bat`。
+> 因为 `startup.bat` 启动时会用 `where python / node / ollama` 检测命令，**软件装了但没配置 PATH 会直接报错退出**。
 
-| 序号 | 需要安装/准备的内容                  | 说明                                                                        |
-| -- | --------------------------- | ------------------------------------------------------------------------- |
-| 1  | **Python 3.12+**            | 需添加到系统 PATH（安装时勾选 "Add Python to PATH"）                                   |
-| 2  | **Node.js 22.18+ / 24.12+** | 需添加到系统 PATH                                                               |
-| 3  | **Ollama**                  | 从 <https://ollama.com> 下载安装，启动后保持运行                                       |
-| 4  | **SQL Server 2019+**        | 含 **ODBC Driver 17 for SQL Server** 驱动，创建登录用户 `ai_ops_user`（密码 `Ops1234`） |
-| 5  | **ffmpeg**                  | 音频格式转换依赖（FunASR 必需），需添加到系统 PATH                                           |
-| 6  | **数据库备份文件**                 | 将 `OpsCenter.bak` 放到项目根目录                                                 |
+**① 安装软件**
+
+| 序号 | 需要安装 | 版本要求 | 说明                                   |
+| -- | ------- | ----------------- | ------------------------------------ |
+| 1  | Python  | 3.12+             | 安装时勾选 "Add Python to PATH"           |
+| 2  | Node.js | 22.18+ / 24.12+   | 安装时默认自动加入 PATH                      |
+| 3  | Ollama  | 最新版              | 从 <https://ollama.com> 下载安装，启动后保持运行 |
+| 4  | SQL Server | 2019+          | 含 **ODBC Driver 17 for SQL Server** 驱动 |
+| 5  | ffmpeg  | 最新稳定版            | 解压到如 `C:\ffmpeg`（FunASR 必需）           |
+
+**② 配置系统 PATH**
+
+| 需要配置  | 配置方法                                        |
+| ------ | ------------------------------------------ |
+| Python  | 安装时勾选即自动配置；未勾选则手动把安装目录加入系统 PATH             |
+| Node.js | 安装时默认自动配置                                  |
+| ffmpeg  | 手动把 `C:\ffmpeg\bin` 目录加入系统 PATH             |
+
+配置后**重开命令行**验证是否生效：
+
+```powershell
+python --version
+node --version
+ffmpeg -version
+```
+
+**③ 准备数据库**
+
+| 序号 | 需要准备     | 说明                                                        |
+| -- | ------- | --------------------------------------------------------- |
+| 6  | 登录用户    | SQL Server 中创建 `ai_ops_user`（密码 `Ops1234`），授予 `OpsCenter` 库访问权限 |
+| 7  | 备份文件    | 将 `OpsCenter.bak` 放到项目根目录                                      |
 
 ### 启动方式：双击 `startup.bat`
 
