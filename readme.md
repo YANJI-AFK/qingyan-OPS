@@ -4,6 +4,8 @@
 
 > 运维工单管理 + 语音交互 + 3D 可视化监控大屏，一站式智能运维平台。
 
+**GitHub 仓库**：[https://github.com/YANJI-AFK/qingyan-OPS](https://github.com/YANJI-AFK/qingyan-OPS)
+
 ***
 
 ## ✨ 项目简介
@@ -25,7 +27,14 @@
 
 ## 🏗️ 技术架构
 
-暂未补充
+| 分层        | 技术选型                                          |
+| --------- | --------------------------------------------- |
+| **后端**    | Python 3.12+ / Flask 3.1 / pyodbc              |
+| **前端**    | Vue 3 + TypeScript + Vite / Pinia / ECharts 6  |
+| **数据库**   | SQL Server 2019+ / ODBC Driver 17 / `OpsCenter` |
+| **大模型**   | Ollama + `qwen3:8b`（本地推理，temperature=0.1）      |
+| **语音**    | FunASR（`paraformer-zh` 离线识别）/ edge-tts / SAPI 降级 |
+| **音频处理**  | ffmpeg（WebM → WAV 16kHz 单声道）                    |
 
 ***
 
@@ -44,6 +53,13 @@
 ***
 
 ## 🚀 快速开始
+
+### 从 GitHub 获取项目
+
+```powershell
+git clone https://github.com/YANJI-AFK/qingyan-OPS.git
+cd qingyan-OPS
+```
 
 ### 前期准备：只需安装这 6 项
 
