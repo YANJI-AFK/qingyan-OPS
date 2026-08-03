@@ -11,22 +11,23 @@ echo.
 echo    This script will:
 echo      1. Check Python ^& create virtual environment
 echo      2. Install backend dependencies
-echo      3. Check Node.js ^& install frontend dependencies
-echo      4. Check Ollama ^& pull model qwen3:8b
-echo      5. Test model connectivity
-echo      6. Check database ^& auto-restore from backup
-echo      7. Start backend (port 5000) ^& frontend (port 5173)
+echo      3. Check sherpa-onnx offline TTS model
+echo      4. Check Node.js ^& install frontend dependencies
+echo      5. Check Ollama ^& pull model qwen3:8b
+echo      6. Test model connectivity
+echo      7. Check database ^& auto-restore from backup
+echo      8. Start backend (port 5000) ^& frontend (port 5173)
 echo.
 echo  ============================================================
 echo.
 
-echo  [1/9] Checking Python ...
+echo  [1/10] Checking Python ...
 where python >nul 2>nul
 if errorlevel 1 goto err_python
 python --version 2>&1
 echo.
 
-echo  [2/9] Setting up virtual environment ...
+echo  [2/10] Setting up virtual environment ...
 if exist "venv\Scripts\python.exe" (
     echo         [SKIP] venv already exists.
 ) else (
@@ -37,19 +38,39 @@ if exist "venv\Scripts\python.exe" (
 )
 echo.
 
-echo  [3/9] Installing backend dependencies ...
+echo  [3/10] Installing backend dependencies ...
 venv\Scripts\python.exe -m pip install -r backend\requirements.txt --quiet --disable-pip-version-check
 if errorlevel 1 goto err_pip
 echo         [OK] Backend dependencies installed.
 echo.
 
-echo  [4/9] Checking Node.js ...
+echo  [4/10] Checking sherpa-onnx offline TTS model ...
+if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
+    echo         [SKIP] TTS model already exists.
+) else (
+    echo         Downloading offline TTS model (about 115MB) ...
+    echo         URL: github.com/k2-fsa/sherpa-onnx/releases ...
+    if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
+    curl.exe -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
+    if errorlevel 1 (
+        echo         [WARN] TTS model download failed.
+        echo                The app will fall back to Windows SAPI voices.
+        echo                To retry, run the script again or download manually.
+    ) else (
+        tar -xf "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" -C "C:\sherpa-tts"
+        del /q "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2"
+        echo         [OK] TTS model ready.
+    )
+)
+echo.
+
+echo  [5/10] Checking Node.js ...
 where node >nul 2>nul
 if errorlevel 1 goto err_node
 node --version 2>&1
 echo.
 
-echo  [5/9] Installing frontend dependencies (npm install) ...
+echo  [6/10] Installing frontend dependencies (npm install) ...
 if exist "frontend\node_modules" (
     echo         [SKIP] node_modules already exists.
 ) else (
@@ -62,13 +83,13 @@ if exist "frontend\node_modules" (
 )
 echo.
 
-echo  [6/9] Checking Ollama ...
+echo  [7/10] Checking Ollama ...
 where ollama >nul 2>nul
 if errorlevel 1 goto err_ollama
 echo         [OK] Ollama found.
 echo.
 
-echo  [7/9] Checking model qwen3:8b ...
+echo  [8/10] Checking model qwen3:8b ...
 ollama list 2>nul | findstr /c:"qwen3:8b" >nul
 if errorlevel 1 (
     echo         Model not found. Pulling qwen3:8b ...
@@ -82,13 +103,13 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [8/9] Testing model connectivity ...
+echo  [9/10] Testing model connectivity ...
 venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hi','stream':False}, timeout=30); exit(0 if r.status_code==200 else 1)"
 if errorlevel 1 goto err_model_test
 echo         [OK] Model responds correctly.
 echo.
 
-echo  [9/9] Database setup ...
+echo  [10/10] Database setup ...
 venv\Scripts\python.exe _db_setup.py
 if errorlevel 1 goto err_db
 echo.
