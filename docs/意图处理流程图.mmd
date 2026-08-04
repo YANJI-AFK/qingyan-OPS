@@ -1,0 +1,114 @@
+%%{
+  init: {
+    "theme": "base",
+    "themeVariables": {
+      "fontFamily": "Microsoft YaHei, PingFang SC, 'Segoe UI', sans-serif",
+      "fontSize": "14px",
+      "primaryColor": "#EFF6FF",
+      "primaryTextColor": "#1E293B",
+      "primaryBorderColor": "#60A5FA",
+      "lineColor": "#64748B",
+      "edgeLabelBackground": "#FFFFFF",
+      "actorBkg": "#EFF6FF"
+    }
+  }
+}%%
+flowchart TD
+    Start([起始节点<br/>用户输入]):::boundary
+
+    Voice[🎤 语音输入<br/>麦克风采集]:::boundary
+    Text[📝 文本输入<br/>键盘输入]:::boundary
+
+    ASR[🟠 ASR 语音识别<br/>FunASR paraformer-large<br/>ffmpeg → WAV 16kHz]:::ai
+
+    Ctx[🟡 上下文管理 / 指代消解<br/>last_entity 加载<br/>最近 8 轮实体消解]:::enhance
+
+    FSM{🟢 状态机检查<br/>当前状态?}:::logic
+    FSM_IDLE[IDLE → 继续正常流程]:::logic
+    FSM_CONF[AWAITING_CONFIRMATION<br/>解析 确认/取消]:::logic
+    FSM_EXEC[触发 二次确认执行]:::logic
+    FSM_CANCEL[回到 IDLE]:::logic
+    FSM_TIMEOUT[30s 超时 → 回到 IDLE]:::logic
+    FSM_BUSY[PROCESSING/REPLYING<br/>提示 正在处理]:::logic
+
+    Rule{🟢 规则预检<br/>正则匹配?}:::logic
+    Rule_HIT[命中<br/>延迟 < 50ms]:::logic
+    Rule_MISS[未命中]:::logic
+
+    LLM[🟠 LLM 大模型意图解析<br/>Ollama + qwen3:8b<br/>11 类意图 严格 JSON]:::ai
+    LLM_FAIL[失败 → 无上下文重试 3 次<br/>全部失败 → unknown]:::ai
+
+    Intent{🟢 意图执行引擎<br/>敏感操作?}:::logic
+    Sensitive[是 → 二次确认]:::logic
+    Direct[否 → 直接执行]:::logic
+
+    Confirm[🟢 二次确认节点<br/>状态切到 AWAITING_CONFIRMATION<br/>等用户说 确认<br/>可在参数配置中关闭]:::logic
+
+    Execute[🟢 业务执行<br/>DB 连接池 / 业务 API<br/>返回原始数据]:::logic
+
+    Polish{🟡 结果润色?<br/>可选}:::enhance
+    Polish_YES[是 → LLM 数据润色<br/>polish_query / summary]:::enhance
+    Polish_NO[否 → 跳过<br/>直接输出]:::enhance
+
+    Output{{🟢 前端结果输出<br/>对话气泡 + 扬声器}}:::boundary
+    Bubble[💬 对话气泡<br/>文字内容]:::boundary
+    Speaker[🔊 扬声器播报]:::boundary
+
+    TTS[🟠 TTS 语音合成<br/>三引擎降级链]:::ai
+    TTS1[1️⃣ sherpa-onnx VITS<br/>离线神经网络 5 音色]:::ai
+    TTS2[2️⃣ Windows SAPI<br/>系统自带离线兜底]:::ai
+    TTS3[3️⃣ edge-tts<br/>在线音色丰富]:::ai
+
+    End([结束节点<br/>前端结果输出]):::boundary
+
+    Start --> Voice
+    Start --> Text
+    Voice --> ASR
+    Text --> Ctx
+    ASR --> Ctx
+    Ctx --> FSM
+
+    FSM -->|IDLE| FSM_IDLE
+    FSM -->|AWAITING_CONFIRMATION| FSM_CONF
+    FSM -->|PROCESSING/REPLYING| FSM_BUSY
+    FSM_CONF -->|确认| FSM_EXEC
+    FSM_CONF -->|取消| FSM_CANCEL
+    FSM_CONF -->|30s 超时| FSM_TIMEOUT
+    FSM_IDLE --> Rule
+    FSM_EXEC --> Execute
+    FSM_CANCEL --> End
+    FSM_TIMEOUT --> End
+    FSM_BUSY --> End
+
+    Rule -->|命中| Rule_HIT
+    Rule -->|未命中| Rule_MISS
+    Rule_HIT --> Intent
+    Rule_MISS --> LLM
+    LLM --> LLM_FAIL
+    LLM_FAIL --> Intent
+
+    Intent -->|是| Sensitive
+    Intent -->|否| Direct
+    Sensitive --> Confirm
+    Confirm -.等待用户确认.-> FSM
+    Direct --> Execute
+
+    Execute --> Polish
+    Polish -->|简单查询/导航/问候| Polish_NO
+    Polish -->|复杂查询/总结| Polish_YES
+    Polish_NO --> Output
+    Polish_YES --> Output
+
+    Output --> Bubble
+    Output --> Speaker
+    Speaker --> TTS
+    TTS --> TTS1
+    TTS1 -->|加载失败| TTS2
+    TTS2 -->|TTS_MODE=auto| TTS3
+    TTS3 --> End
+    Bubble --> End
+
+    classDef ai fill:#FFE8CC,stroke:#E8590C,stroke-width:2px,color:#7B2D00,rx:14,ry:14,font-weight:bold
+    classDef logic fill:#D3F9D8,stroke:#2B8A3E,stroke-width:2px,color:#0B4F1F,rx:14,ry:14,font-weight:bold
+    classDef enhance fill:#FFF3BF,stroke:#E67700,stroke-width:2px,color:#664D00,rx:14,ry:14,font-weight:bold
+    classDef boundary fill:#D0EBFF,stroke:#1864AB,stroke-width:2px,color:#0B3D6E,rx:14,ry:14,font-weight:bold
