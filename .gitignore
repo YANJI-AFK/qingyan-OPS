@@ -57,7 +57,6 @@ _update_tags.py
 _role_extra_tags.py
 check_staff_tickets.py
 _smoke_test_tts.py
-_install_windows_tts.bat
 
 # ============ 旧 Mock 数据 ============
 servers.txt

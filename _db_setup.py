@@ -66,7 +66,8 @@ def restore_database(restore_user, restore_password):
     except Exception as e:
         print(f"  [错误] 数据库还原失败：{e}")
         print(f"  [提示] 还原数据库需要 sysadmin / dbcreator 权限，")
-        print(f"         可双击运行：_restore_as_admin.bat 或手动用 SSMS 还原。")
+        print(f"         请使用 SSMS 以管理员身份手动还原 OpsCenter.bak，")
+        print(f"         或为当前用户授予 dbcreator 权限后重试。")
         return False
 
 

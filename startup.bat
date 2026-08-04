@@ -10,26 +10,43 @@ echo    QingyanOPS - One-Click Quick Start
 echo  ============================================================
 echo.
 echo    This script will:
-echo      1. Check Python ^& create virtual environment
+echo      1. Check Python, ffmpeg ^& create virtual environment
 echo      2. Install backend dependencies
 echo      3. Check sherpa-onnx offline TTS model
 echo      4. Check Node.js ^& install frontend dependencies
 echo      5. Check Ollama ^& pull model qwen3:8b
 echo      6. Ensure Ollama service is running
-echo      7. Test model connectivity
+echo      7. Preload model into memory
 echo      8. Check database ^& auto-restore from backup
 echo      9. Start backend (port 5000) ^& frontend (port 5173)
 echo.
 echo  ============================================================
 echo.
 
-echo  [1/11] Checking Python ...
+echo  [1/12] Checking Python ...
 where python >nul 2>nul
 if errorlevel 1 goto err_python
 python --version 2>&1
 echo.
 
-echo  [2/11] Setting up virtual environment ...
+echo  [2/12] Checking ffmpeg ...
+where ffmpeg >nul 2>nul
+if errorlevel 1 (
+    if exist "C:\ffmpeg\bin\ffmpeg.exe" (
+        set "PATH=%PATH%;C:\ffmpeg\bin"
+        echo         [OK] ffmpeg found at C:\ffmpeg\bin, added to PATH.
+    ) else (
+        echo         [WARN] ffmpeg not found.
+        echo                Voice transcription (ASR) will be unavailable.
+        echo                Install ffmpeg and add C:\ffmpeg\bin to PATH.
+        echo                Download: https://www.gyan.dev/ffmpeg/builds/
+    )
+) else (
+    echo         [OK] ffmpeg found.
+)
+echo.
+
+echo  [3/12] Setting up virtual environment ...
 if exist "venv\Scripts\python.exe" (
     echo         [SKIP] venv already exists.
 ) else (
@@ -40,13 +57,13 @@ if exist "venv\Scripts\python.exe" (
 )
 echo.
 
-echo  [3/11] Installing backend dependencies ...
+echo  [4/12] Installing backend dependencies ...
 venv\Scripts\python.exe -m pip install -r backend\requirements.txt --quiet --disable-pip-version-check
 if errorlevel 1 goto err_pip
 echo         [OK] Backend dependencies installed.
 echo.
 
-echo  [4/11] Checking sherpa-onnx offline TTS model ...
+echo  [5/12] Checking sherpa-onnx offline TTS model ...
 if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     echo         [SKIP] TTS model already exists.
 ) else (
@@ -57,7 +74,8 @@ if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     if errorlevel 1 (
         echo         [WARN] TTS model download failed.
         echo                The app will fall back to Windows SAPI voices.
-        echo                To retry, run the script again or download manually.
+        echo                To retry with a GitHub mirror (gh-proxy.com prefix):
+        echo                curl -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
     ) else (
         tar -xf "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" -C "C:\sherpa-tts"
         del /q "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2"
@@ -66,13 +84,13 @@ if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
 )
 echo.
 
-echo  [5/11] Checking Node.js ...
+echo  [6/12] Checking Node.js ...
 where node >nul 2>nul
 if errorlevel 1 goto err_node
 node --version 2>&1
 echo.
 
-echo  [6/11] Installing frontend dependencies (npm install) ...
+echo  [7/12] Installing frontend dependencies (npm install) ...
 if exist "frontend\node_modules" (
     echo         [SKIP] node_modules already exists.
 ) else (
@@ -85,13 +103,13 @@ if exist "frontend\node_modules" (
 )
 echo.
 
-echo  [7/11] Checking Ollama ...
+echo  [8/12] Checking Ollama ...
 where ollama >nul 2>nul
 if errorlevel 1 goto err_ollama
 echo         [OK] Ollama found.
 echo.
 
-echo  [8/11] Checking model qwen3:8b ...
+echo  [9/12] Checking model qwen3:8b ...
 ollama list 2>nul | findstr /c:"qwen3:8b" >nul
 if errorlevel 1 (
     echo         Model not found. Pulling qwen3:8b ...
@@ -105,7 +123,7 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [9/11] Ensuring Ollama service is running ...
+echo  [10/12] Ensuring Ollama service is running ...
 REM Check if Ollama is already listening on port 11434
 curl.exe -s http://localhost:11434/api/tags >nul 2>&1
 if errorlevel 1 (
@@ -128,7 +146,7 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [10/11] Preloading model qwen3:8b into memory ...
+echo  [11/12] Preloading model qwen3:8b into memory ...
 echo         This ensures instant response on first chat.
 echo         Model will be kept in memory until Ollama restarts.
 venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hello','stream':False,'keep_alive':-1}, timeout=180); exit(0 if r.status_code==200 else 1)"
@@ -136,7 +154,7 @@ if errorlevel 1 goto err_model_test
 echo         [OK] Model loaded and kept in memory.
 echo.
 
-echo  [11/11] Database setup ...
+echo  [12/12] Database setup ...
 venv\Scripts\python.exe _db_setup.py
 if errorlevel 1 goto err_db
 echo.

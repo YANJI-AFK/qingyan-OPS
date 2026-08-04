@@ -64,6 +64,34 @@
 
 ***
 
+## 🖥️ 硬件配置要求
+
+系统需同时运行 **Ollama（qwen3:8b）+ SQL Server + FunASR + 前后端服务**，对硬件有一定要求，尤其是**内存**与**显存**。
+
+### 最低配置（纯 CPU 推理，可用但响应较慢）
+
+| 硬件 | 要求 | 说明 |
+| ---- | ---- | ---- |
+| CPU | 4 核 / 8 线程及以上 | 纯 CPU 推理 `qwen3:8b`，单次对话约需 10~30 秒 |
+| 内存 | **16 GB**（至少 8 GB） | `qwen3:8b` 量化模型约占用 5.2 GB，8 GB 内存仅可勉强运行（会触发虚拟内存，明显变慢） |
+| 显卡 | 无要求 | CPU 推理即可 |
+| 磁盘 | 30 GB 可用空间 | 模型约 5.2 GB + FunASR 约 1 GB + 数据库 + 依赖 |
+| 网络 | 安装阶段需联网 | 首次需下载模型与依赖，安装后可全离线运行 |
+
+### 推荐配置（GPU 加速，对话流畅）
+
+| 硬件 | 要求 | 说明 |
+| ---- | ---- | ---- |
+| CPU | 8 核及以上 | 保障 ASR 语音识别与系统整体响应 |
+| 内存 | **16 GB 及以上**（建议 32 GB） | 大模型 + 数据库 + 浏览器同时运行更从容 |
+| 显卡 | **RTX 4060（8 GB 显存）及以上** | `qwen3:8b`（Q4 量化）约需 5.2 GB 显存，8 GB 显存可流畅推理；4070 / 4080 / 4090 效果更佳 |
+| 磁盘 | SSD 50 GB 可用空间 | 建议使用固态硬盘，加快模型加载速度 |
+| 网络 | 安装阶段需联网 | 安装后可全离线运行 |
+
+> 💡 **显存 / 内存选择建议**：`qwen3:8b`（Q4 量化）权重约 5.2 GB。若仅 8 GB 显存，可通过环境变量限制上下文长度（如 `OLLAMA_NUM_CTX=2048`）以降低显存占用；若显存不足，模型会自动回退到 CPU 推理，响应速度明显下降。
+
+***
+
 ## 🚀 快速启动
 
 ### 从 GitHub 获取项目
@@ -113,21 +141,22 @@ ffmpeg -version
 
 ### 启动方式：双击 `startup.bat`
 
-在项目根目录**双击** **`startup.bat`**，脚本会自动完成以下 11 个步骤：
+在项目根目录**双击** **`startup.bat`**，脚本会自动完成以下 12 个步骤：
 
 | 步骤      | 自动完成的内容                                           |
 | ------  | ------------------------------------------------- |
-| \[1/11] | 检查 Python 环境                                      |
-| \[2/11] | 创建虚拟环境 `venv`（如已存在则跳过）                            |
-| \[3/11] | 安装后端 Python 依赖（`pip install -r requirements.txt`） |
-| \[4/11] | 检查/下载 sherpa-onnx 离线 TTS 模型（约 115MB，已存在则跳过；失败自动降级 SAPI） |
-| \[5/11] | 检查 Node.js 环境                                     |
-| \[6/11] | 安装前端依赖（`npm install`，如已存在则跳过）                     |
-| \[7/11] | 检查 Ollama 服务                                      |
-| \[8/11] | 检查并自动拉取模型 `qwen3:8b`（如已存在则跳过）                     |
-| \[9/11] | 确保 Ollama 服务在运行（未运行则自动后台启动，轮询等待最多 60s）            |
-| \[10/11] | 预加载模型 `qwen3:8b` 到内存（`keep_alive=-1` 常驻，首次对话无需等待）           |
-| \[11/11] | 检查数据库：有数据则跳过，不可连接则自动从 `OpsCenter.bak` 还原          |
+| \[1/12] | 检查 Python 环境                                      |
+| \[2/12] | 检查 ffmpeg（未安装则提示，存在 `C:\ffmpeg\bin` 则自动加入 PATH）         |
+| \[3/12] | 创建虚拟环境 `venv`（如已存在则跳过）                            |
+| \[4/12] | 安装后端 Python 依赖（`pip install -r requirements.txt`） |
+| \[5/12] | 检查/下载 sherpa-onnx 离线 TTS 模型（约 115MB，已存在则跳过；失败自动降级 SAPI） |
+| \[6/12] | 检查 Node.js 环境                                     |
+| \[7/12] | 安装前端依赖（`npm install`，如已存在则跳过）                     |
+| \[8/12] | 检查 Ollama 服务                                      |
+| \[9/12] | 检查并自动拉取模型 `qwen3:8b`（如已存在则跳过）                     |
+| \[10/12] | 确保 Ollama 服务在运行（未运行则自动后台启动，轮询等待最多 60s）            |
+| \[11/12] | 预加载模型 `qwen3:8b` 到内存（`keep_alive=-1` 常驻，首次对话无需等待）           |
+| \[12/12] | 检查数据库：有数据则跳过，不可连接则自动从 `OpsCenter.bak` 还原          |
 
 > 全部通过后自动启动前端（`http://localhost:5173`）和后端（`http://localhost:5000`）。关闭窗口即可停止服务。
 
@@ -196,7 +225,7 @@ tar -xf C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 -C C:\sherpa-tts
 ollama pull qwen3:8b
 ```
 
-### 5. 安装前端依赖
+### 6. 安装前端依赖
 
 ```powershell
 cd frontend
@@ -223,12 +252,11 @@ npm install
 ├── _db_setup.py                   # 数据库检查与自动还原工具（startup.bat 调用）
 ├── _install_windows_tts.bat       # Windows 中文语音包安装脚本（需管理员运行，可选）
 ├── OpsCenter.bak                  # 数据库备份文件（还原数据库用）
-├── readme.md / AGENTS.md          # 使用文档 / 编码指南
-├── SYSTEM_FEATURES.md             # 系统功能特性说明
+├── readme.md                      # 使用文档
 ├── images/                        # 文档截图资源
 ├── archive/                       # 归档区
-│   ├── docs/                      #   ├── 项目文档（WEEK 周报、需求修改等）
-│   └── data/                      #   └── 旧 Mock 数据（servers.txt、tickets.txt）
+│   ├── docs/                      # 项目文档（WEEK 周报、规则预检说明、需求修改等）
+│   └── data/                      # 旧 Mock 数据（servers.txt、tickets.txt）
 ├── logs/                          # 运行日志（stdout.log、stderr.log，gitignore 忽略）
 ├── backend/                       # 后端服务（Flask，端口 5000）
 │   ├── app.py                     # 路由 + 状态机 + 意图执行引擎
@@ -237,7 +265,9 @@ npm install
 │   ├── tts_service.py             # TTS 合成（sherpa / SAPI / edge-tts 三引擎）
 │   ├── db_service.py              # 数据库连接池 + 全部 CRUD
 │   ├── chat_state.py              # 对话状态机（FSM）
-│   ├── tts_models/                # sherpa-onnx 模型缓存目录
+│   ├── mock_data.py               # 模拟监控数据生成
+│   ├── seed_data_v2.py            # 测试种子数据脚本
+│   ├── seed_metrics_month.sql     # 监控指标月度数据 SQL
 │   ├── requirements.txt           # Python 依赖清单
 │   └── tests/                     # 后端测试脚本与测试用例文档
 ├── frontend/                      # 前端应用（Vite，端口 5173）
@@ -245,11 +275,14 @@ npm install
 │   ├── package.json               # 前端依赖清单
 │   └── src/
 │       ├── App.vue                # 根组件（数字人浮窗 + VAD 持续聆听）
+│       ├── api/                   # Axios 接口封装
 │       ├── router/                # 路由（8 页面 + 2 子布局）
+│       ├── stores/                # Pinia 状态管理（工单、操作日志）
 │       ├── views/                 # 业务页面（Home/Monitor/Tickets/Staff 等 10 个）
 │       └── components/            # 3D 地球等公共组件
 └── docs/
-    └── PROMPT.md                  # LLM Prompt 设计文档
+    ├── PROMPT.md                  # LLM Prompt 设计文档
+    └── 项目技术文档.md             # 系统架构、算法流程、数据设计文档
 ```
 
 ***
