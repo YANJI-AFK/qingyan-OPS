@@ -37,7 +37,7 @@ if errorlevel 1 (
         echo         [OK] ffmpeg found at C:\ffmpeg\bin, added to PATH.
     ) else (
         echo         [WARN] ffmpeg not found.
-        echo                Voice transcription (ASR) will be unavailable.
+        echo                Voice transcription ^(ASR^) will be unavailable.
         echo                Install ffmpeg and add C:\ffmpeg\bin to PATH.
         echo                Download: https://www.gyan.dev/ffmpeg/builds/
     )
@@ -74,7 +74,7 @@ if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     if errorlevel 1 (
         echo         [WARN] TTS model download failed.
         echo                The app will fall back to Windows SAPI voices.
-        echo                To retry with a GitHub mirror (gh-proxy.com prefix):
+        echo                To retry with a GitHub mirror ^(gh-proxy.com prefix^):
         echo                curl -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
     ) else (
         tar -xf "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" -C "C:\sherpa-tts"
