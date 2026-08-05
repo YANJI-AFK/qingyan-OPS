@@ -1,20 +1,24 @@
-blinker==1.9.0
-click==8.4.2
-colorama==0.4.6
-Flask==3.1.3
-flask-cors==6.0.5
-itsdangerous==2.2.0
-Jinja2==3.1.6
-MarkupSafe==3.0.3
-Werkzeug==3.1.8
+# 轻言OPS 后端依赖
+# 安装方式: venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+
+# ===== Web 框架 =====
 flask
 flask-cors
+
+# ===== 数据库（SQL Server 连接驱动）=====
+pyodbc
+
+# ===== 大模型调用（Ollama qwen3:8b）=====
 requests
+
+# ===== 语音识别 ASR（FunASR paraformer，全离线）=====
 funasr
 modelscope
-soundfile
-pyaudio
-pyttsx3
 numpy
+
+# ===== 语音合成 TTS =====
+# 引擎优先级: sherpa-onnx(离线) -> SAPI(离线, pywin32) -> edge-tts(在线,可选)
 sherpa-onnx
+pywin32
+pyttsx3
 edge-tts
