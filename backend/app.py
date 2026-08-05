@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import psutil
 
 # ========== 环境检查：必须激活 venv 运行 ==========
 _VENV = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "venv")
@@ -542,9 +543,11 @@ def execute_action_fsm(intent_data: dict, user_text: str):
             metrics = db_service.get_latest_metrics()
             if metrics:
                 if target_field == "cpu":
-                    reply_text = f"当前 CPU 使用率 {metrics.get('cpu_usage_percent', 0):.1f}%。"
+                    cpu_val = psutil.cpu_percent(interval=0.5)
+                    reply_text = f"当前 CPU 使用率 {cpu_val:.1f}%。"
                 elif target_field == "memory":
-                    reply_text = f"当前内存使用率 {metrics.get('memory_usage_percent', 0):.1f}%。"
+                    mem_val = psutil.virtual_memory().percent
+                    reply_text = f"当前内存使用率 {mem_val:.1f}%。"
                 elif target_field == "disk":
                     reply_text = f"磁盘读取 {metrics.get('disk_read_mbps', 0):.1f} Mbps，写入 {metrics.get('disk_write_mbps', 0):.1f} Mbps。"
                 elif target_field == "network":

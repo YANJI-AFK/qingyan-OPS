@@ -115,7 +115,7 @@ def get_model():
             device="cpu",
             # ===== VAD 参数调优（解决吞开头字问题）=====
             vad_kwargs={
-                "max_end_silence_time": 1200,     # 句尾最大静音时长(ms)，加大避免中途截断
+                "max_end_silence_time": 2400,     # 句尾最大静音时长(ms)，加大给用户留足思考停顿时间
                 "speech_start_silence_time": 120,  # 句首允许的静音(ms)，收窄以捕获开头
                 "speech_noise_threshold": 0.5,     # 噪声阈值（越小越敏感，0.4-0.6）
             },

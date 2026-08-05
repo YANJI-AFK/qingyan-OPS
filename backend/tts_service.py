@@ -26,6 +26,7 @@ import struct
 import tempfile
 import subprocess
 import wave
+import re
 
 # ====== TTS 数字朗读预处理（防止"2026"被念成"两千零二十六"）======
 _TTS_DIGIT_MAP = {
@@ -36,19 +37,29 @@ _TTS_DIGIT_MAP = {
 
 def _tts_normalize_numbers(text: str) -> str:
     """
-    将阿拉伯数字序列转为逐位中文读音。
-    防止 TTS 引擎把"2026"念成"两千零二十六"，应念成"二零二六"。
+    TTS 朗读预处理，解决两类问题：
+    1. 年份/编号按位读："2026"→"二零二六"，防止被念成"两千零二十六"
+    2. 百分号补全："45.2%"→"45.2百分之"，防止 TTS 跳过或吞掉百分号
+
+    规则：
+    - ≥4 位连续数字 → 逐位中文（年份、工单编号）
+    - 1-3 位数字 → 保留原样（数量、百分比数值），让 TTS 引擎自然朗读
+    - "%" → "百分之"（补全百分号读音）
 
     例如:
-        "2026"                 → "二零二六"
-        "2026-08-05"           → "二零二六-零八-零五"
-        "TKT-20260831-0005"    → "TKT-二零二六零八三一-零零零五"
-        "CPU 67.3%"            → "CPU 六七.三%"
-        "总共50个工单"          → "总共五零个工单"
+        "2026"               → "二零二六"
+        "2026-08-05"         → "二零二六-08-05"
+        "TKT-20260831-0005"  → "TKT-二零二六零八三一-零零零五"
+        "共有277个工单"       → "共有277个工单"（TTS 自然读"二百七十七个"）
+        "CPU 45.2%"          → "CPU 45.2百分之"（TTS 自然读"四十五点二百分之"）
     """
     if not text:
         return text
 
+    # 第一步：百分号补全（"45.2%" → "百分之45.2"，保持汉语语序）
+    text = re.sub(r'(\d+\.?\d*)%', r'百分之\1', text)
+
+    # 第二步：≥4 位数字按位读
     result = []
     i = 0
     while i < len(text):
@@ -58,7 +69,10 @@ def _tts_normalize_numbers(text: str) -> str:
             while i < len(text) and text[i].isdigit():
                 i += 1
             span = text[start:i]
-            result.append(''.join(_TTS_DIGIT_MAP[c] for c in span))
+            if len(span) >= 4:
+                result.append(''.join(_TTS_DIGIT_MAP[c] for c in span))
+            else:
+                result.append(span)  # 1-3 位数字保留原样
         else:
             result.append(ch)
             i += 1

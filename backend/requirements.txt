@@ -22,3 +22,6 @@ sherpa-onnx
 pywin32
 pyttsx3
 edge-tts
+
+# ===== 系统监控（实时 CPU/内存读取）=====
+psutil
