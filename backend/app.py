@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
+import re
 import sys
 
 # ========== 环境检查：必须激活 venv 运行 ==========
@@ -34,6 +35,48 @@ import asr_service
 import tts_service
 import db_service
 from chat_state import ChatState
+
+# ========== 工单 ID 格式标准化（语音输入 → 标准格式）==========
+def _normalize_ticket_id(raw_id):
+    """
+    将各种语音输入产生的工单 ID 格式统一为 TKT-YYYYMMDD-XXXX。
+    支持的格式：
+      - 纯数字编号 "5"                    → "5"（保持原样）
+      - 无短横线 "TKT202608310005"         → "TKT-20260831-0005"
+      - 无 TKT 前缀 "202608310005"         → "TKT-20260831-0005"
+      - 标准格式 "TKT-20260831-0005"       → 保持不变（已正确）
+    """
+    if raw_id is None:
+        return None
+    if isinstance(raw_id, int):
+        return str(raw_id)
+
+    raw_id = str(raw_id).strip()
+
+    # 已是标准格式：TKT-YYYY-MM-DD-XXXX
+    if re.match(r'^TKT-\d{4}-\d{2}-\d{2}-\d{4}$', raw_id):
+        return raw_id
+
+    # 去掉 TKT 前缀（不区分大小写、有无横线）
+    digits = raw_id.upper().replace("TKT-", "").replace("TKT", "")
+
+    if not digits.isdigit():
+        return raw_id  # 非纯数字（如简单编号），保持原样
+
+    # 短数字如"5" → 直接返回
+    if len(digits) <= 4:
+        return digits
+
+    # 12 位数字：YYYYMMDDXXXX → TKT-YYYYMMDD-XXXX
+    if len(digits) == 12:
+        return "TKT-{}-{}".format(digits[0:8], digits[8:12])
+
+    # 超过 12 位数字（容错）→ 取前 12 位
+    if len(digits) > 12:
+        digits = digits[:12]
+        return "TKT-{}-{}".format(digits[0:8], digits[8:12])
+
+    return raw_id
 
 # ========== 全局对话状态机 ==========
 chat_state = ChatState()
@@ -413,7 +456,7 @@ def execute_action_fsm(intent_data: dict, user_text: str):
                 "status_label": api_result.get("status", ""),
             }
         elif api == "tickets_detail":
-            tid = params.get("id")
+            tid = _normalize_ticket_id(params.get("id"))
             ticket = db_service.get_ticket_by_id(tid)
             if ticket:
                 reply_text = f"工单{tid}：{ticket['title']}，状态「{ticket['status']}」，优先级{ticket['priority']}，负责人{ticket['assignee']}。"
@@ -422,7 +465,7 @@ def execute_action_fsm(intent_data: dict, user_text: str):
                 reply_text = f"未找到工单 {tid}。"
         else:
             # 兜底：LLM 可能自己发明了 api 名但 params 里带了 id
-            tid = params.get("id")
+            tid = _normalize_ticket_id(params.get("id"))
             if tid:
                 ticket = db_service.get_ticket_by_id(tid)
                 if ticket:
@@ -578,7 +621,7 @@ def execute_action_fsm(intent_data: dict, user_text: str):
 
     elif intent == "delete":
         params = intent_data.get("params", {})
-        ticket_id = params.get("id")
+        ticket_id = _normalize_ticket_id(params.get("id"))
         # 如果 LLM 把"六"识别为 6，但 params["id"] 可能是字符串"六"
         # 尝试从上下文 last_entity 获取
         if not ticket_id:
@@ -614,7 +657,7 @@ def execute_action_fsm(intent_data: dict, user_text: str):
         api = intent_data.get("api", "")
         params = intent_data.get("params", {})
         if api == "tickets_update":
-            ticket_id = params.get("id")
+            ticket_id = _normalize_ticket_id(params.get("id"))
             new_status = params.get("status")
             ticket = db_service.get_ticket_by_id(ticket_id)
             if not ticket:
@@ -628,7 +671,7 @@ def execute_action_fsm(intent_data: dict, user_text: str):
                 reply_text = f"您确定要将工单「{ticket['title']}」修改为「{new_status}」吗？请说「确认」或「取消」。"
                 need_confirmation = True
         elif api == "tickets_assign":
-            ticket_id = params.get("id")
+            ticket_id = _normalize_ticket_id(params.get("id"))
             new_assignee = params.get("assignee", "")
             ticket = db_service.get_ticket_by_id(ticket_id)
             if not ticket:
@@ -682,7 +725,7 @@ def execute_action_fsm(intent_data: dict, user_text: str):
                         reply_text = f"排班操作失败：{assign_result.get('error', '未知错误')}"
         else:
             # 兜底：LLM 可能自己造了 api 名但 params 里带了 id+status
-            ticket_id = params.get("id")
+            ticket_id = _normalize_ticket_id(params.get("id"))
             new_status = params.get("status")
             if ticket_id and new_status:
                 ticket = db_service.get_ticket_by_id(ticket_id)

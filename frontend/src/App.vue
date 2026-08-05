@@ -100,11 +100,13 @@ let recordingStream: MediaStream | null = null  // 录音专用流（与VAD分�
 // ========== 浏览器实时语音识别（Web Speech API）==========
 let speechRecognition: any = null
 let speechRecognitionRunning = false
+const realtimeSupported = ref(false)   // 浏览器是否支持实时转写（离线模式下不可用）
 
 function initSpeechRecognition() {
   const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
   if (!SpeechRecognition) {
     console.warn('[实时转写] 浏览器不支持 SpeechRecognition API')
+    realtimeSupported.value = false
     return null
   }
   const recognition = new SpeechRecognition()
@@ -133,13 +135,21 @@ function initSpeechRecognition() {
       // 静默期，正常情况，忽略
       return
     }
+    if (event.error === 'network') {
+      // 离线模式下无网络，标记不可用并降级
+      console.warn('[实时转写] 离线模式，降级为录音指示器')
+      realtimeSupported.value = false
+      return
+    }
     console.warn('[实时转写] 错误:', event.error)
+    realtimeSupported.value = false
   }
 
   recognition.onend = () => {
     speechRecognitionRunning = false
   }
 
+  realtimeSupported.value = true
   return recognition
 }
 
@@ -1033,14 +1043,20 @@ function resumeListening() {
       </div>
 
       <div class="fw-footer" v-show="!isMinimized">
-        <!-- 🔥 实时转写显示区 -->
-        <div v-if="isRecording && realtimeText && !continuousMode" class="realtime-transcript">
+        <!-- 🔥 实时转写显示区（手动录音模式） -->
+        <div v-if="isRecording && !continuousMode" class="realtime-transcript" :class="{ offline: !realtimeSupported }">
           <svg class="realtime-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
             <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
           </svg>
-          <span class="realtime-wave"></span>
-          <span class="realtime-txt">{{ realtimeText }}</span>
-          <span class="realtime-cursor">|</span>
+          <template v-if="realtimeText">
+            <span class="realtime-wave"></span>
+            <span class="realtime-txt">{{ realtimeText }}</span>
+            <span class="realtime-cursor">|</span>
+          </template>
+          <template v-else>
+            <span class="realtime-wave offline-wave"></span>
+            <span class="realtime-txt recording-hint">正在录音中...</span>
+          </template>
         </div>
 
         <!-- TTS 播放控制条 -->
@@ -1583,6 +1599,28 @@ body {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* 离线模式录音指示器 */
+.realtime-transcript.offline {
+  background: linear-gradient(135deg, #fff7e6 0%, #fffbe6 100%);
+  border-color: #ffd666;
+}
+.realtime-transcript.offline .realtime-icon {
+  color: #fa8c16;
+}
+.recording-hint {
+  color: #ad6800 !important;
+  font-style: italic;
+  letter-spacing: 2px;
+}
+.offline-wave {
+  background: #fa8c16 !important;
+  animation: offlinePulse 0.5s ease-in-out infinite alternate !important;
+}
+@keyframes offlinePulse {
+  from { opacity: 0.3; height: 8px; }
+  to { opacity: 1; height: 18px; }
 }
 
 /* ---- TTS 设置面板（语速 + 音色） ---- */

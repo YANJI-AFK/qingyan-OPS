@@ -27,6 +27,45 @@ import tempfile
 import subprocess
 import wave
 
+# ====== TTS 数字朗读预处理（防止"2026"被念成"两千零二十六"）======
+_TTS_DIGIT_MAP = {
+    '0': '零', '1': '一', '2': '二', '3': '三', '4': '四',
+    '5': '五', '6': '六', '7': '七', '8': '八', '9': '九',
+}
+
+
+def _tts_normalize_numbers(text: str) -> str:
+    """
+    将阿拉伯数字序列转为逐位中文读音。
+    防止 TTS 引擎把"2026"念成"两千零二十六"，应念成"二零二六"。
+
+    例如:
+        "2026"                 → "二零二六"
+        "2026-08-05"           → "二零二六-零八-零五"
+        "TKT-20260831-0005"    → "TKT-二零二六零八三一-零零零五"
+        "CPU 67.3%"            → "CPU 六七.三%"
+        "总共50个工单"          → "总共五零个工单"
+    """
+    if not text:
+        return text
+
+    result = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch.isdigit():
+            start = i
+            while i < len(text) and text[i].isdigit():
+                i += 1
+            span = text[start:i]
+            result.append(''.join(_TTS_DIGIT_MAP[c] for c in span))
+        else:
+            result.append(ch)
+            i += 1
+
+    return ''.join(result)
+
+
 # ====== edge-tts 支持（需 pip install edge-tts） ======
 _USE_EDGE = False
 try:
@@ -599,6 +638,9 @@ def synthesize_to_wav(text: str, rate: int = -2, voice_name: str = "sapi-0") -> 
         rate: 语速，范围 -10 到 10
         voice_name: 音色 id（sapi-* / sherpa-* / edge-tts 音色 id）
     """
+    # 🔥 TTS 数字朗读归一化：把"2026"转成"二零二六"按位读，防止念成"两千零二十六"
+    text = _tts_normalize_numbers(text)
+
     # SAPI 系统语音（离线，含神经网络音色）
     if voice_name.startswith("sapi-"):
         idx = int(voice_name.split("-")[1])
@@ -670,6 +712,7 @@ def _tts_worker():
 
 def speak(text: str):
     """播报文字（同步阻塞，使用最佳 SAPI 语音 + 防截断预热）"""
+    text = _tts_normalize_numbers(text)
     global _tts_worker_running
     print(f"[TTS] 播报: {text}")
     # 停止后台工作线程
@@ -707,6 +750,7 @@ def speak(text: str):
 
 def speak_async(text: str):
     """播报文字（异步放入队列）"""
+    text = _tts_normalize_numbers(text)
     global _tts_worker_running
     if not _tts_worker_running:
         worker = threading.Thread(target=_tts_worker, daemon=True)

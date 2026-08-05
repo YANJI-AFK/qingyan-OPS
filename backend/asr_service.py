@@ -3,6 +3,7 @@ ASR 语音识别服务模块
 使用 FunASR + paraformer-zh 模型进行中文语音识别
 """
 import os
+import re
 import time
 
 # ⚠️ 必须在 import funasr 之前设置
@@ -46,6 +47,48 @@ _PUNC_DIR = os.path.join(_CACHE, "iic--punc_ct-transformer_zh-cn-common-vocab272
 
 # 全局模型实例（只加载一次）
 _asr_model = None
+
+# ====== 中文数字 → 阿拉伯数字转换（修复 ASR 数字变汉字问题）======
+_CN_NUM_MAP = {
+    '零': '0', '一': '1', '二': '2', '三': '3', '四': '4',
+    '五': '5', '六': '6', '七': '7', '八': '8', '九': '9',
+    '幺': '1',  # 工单/电话号数字中"幺"表示 1
+}
+
+
+def _cn_numerals_to_digits(text: str) -> str:
+    """
+    将连续的中文数字字符序列转换为阿拉伯数字。
+    仅转换长度 >= 2 的连续序列，避免影响正常中文单字（如「一个人」）。
+    
+    例如:
+        "二零二六"              → "2026"
+        "零八三幺"              → "0831"（含「幺」→1）
+        "零零零五"              → "0005"
+        "TKT二零二六零八三幺零零零五" → "TKT202608310005"
+        "一个人"                → "一个人"（单字不转换）
+    """
+    if not text:
+        return text
+
+    result = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch in _CN_NUM_MAP:
+            start = i
+            while i < len(text) and text[i] in _CN_NUM_MAP:
+                i += 1
+            span = text[start:i]
+            if len(span) >= 2:
+                result.append(''.join(_CN_NUM_MAP[c] for c in span))
+            else:
+                result.append(span)
+        else:
+            result.append(ch)
+            i += 1
+
+    return ''.join(result)
 
 
 def get_model():
@@ -101,11 +144,14 @@ def recognize_from_bytes(audio_bytes: bytes, sample_rate: int = 16000) -> str:
     result = model.generate(input=audio_np, fs=sample_rate)
     
     # 解析结果
+    text = ""
     if isinstance(result, list) and len(result) > 0:
-        return result[0].get("text", "")
+        text = result[0].get("text", "")
     elif isinstance(result, dict):
-        return result.get("text", "")
-    return ""
+        text = result.get("text", "")
+    
+    # 中文数字 → 阿拉伯数字转换（修复"二零二六"→"2026"等 ASR 数字变汉字问题）
+    return _cn_numerals_to_digits(text)
 
 
 def recognize_from_file(file_path: str) -> str:
@@ -121,11 +167,14 @@ def recognize_from_file(file_path: str) -> str:
     model = get_model()
     result = model.generate(input=file_path)
     
+    text = ""
     if isinstance(result, list) and len(result) > 0:
-        return result[0].get("text", "")
+        text = result[0].get("text", "")
     elif isinstance(result, dict):
-        return result.get("text", "")
-    return ""
+        text = result.get("text", "")
+    
+    # 中文数字 → 阿拉伯数字转换
+    return _cn_numerals_to_digits(text)
 
 
 def recognize_from_base64(base64_str: str, sample_rate: int = 16000) -> str:
