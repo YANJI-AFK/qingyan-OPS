@@ -137,26 +137,28 @@ ffmpeg -version
 | 序号 | 需要准备 | 说明                                                              |
 | -- | ---- | --------------------------------------------------------------- |
 | 6  | 登录用户 | SQL Server 中创建 `ai_ops_user`（密码 `Ops1234`），授予 `OpsCenter` 库访问权限 |
-| 7  | 备份文件 | 将 `OpsCenter.bak` 放到项目根目录                                       |
+| 7  | 备份文件 | 将 `OpsCenter.bak` 放到项目根目录 ⚠️ **该文件含敏感数据，已从 GitHub 撤下**，需向项目作者获取或使用你自己的本地备份 |
 
 ### 启动方式：双击 `startup.bat`
 
-在项目根目录**双击** **`startup.bat`**，脚本会自动完成以下 12 个步骤：
+在项目根目录**双击** **`startup.bat`**，脚本会自动完成以下 13 个步骤：
 
 | 步骤      | 自动完成的内容                                           |
 | ------  | ------------------------------------------------- |
-| \[1/12] | 检查 Python 环境                                      |
-| \[2/12] | 检查 ffmpeg（未安装则提示，存在 `C:\ffmpeg\bin` 则自动加入 PATH）         |
-| \[3/12] | 创建虚拟环境 `venv`（如已存在则跳过）                            |
-| \[4/12] | 安装后端 Python 依赖（`pip install -r requirements.txt`） |
-| \[5/12] | 检查/下载 sherpa-onnx 离线 TTS 模型（约 115MB，已存在则跳过；失败自动降级 SAPI） |
-| \[6/12] | 检查 Node.js 环境                                     |
-| \[7/12] | 安装前端依赖（`npm install`，如已存在则跳过）                     |
-| \[8/12] | 检查 Ollama 服务                                      |
-| \[9/12] | 检查并自动拉取模型 `qwen3:8b`（如已存在则跳过）                     |
-| \[10/12] | 确保 Ollama 服务在运行（未运行则自动后台启动，轮询等待最多 60s）            |
-| \[11/12] | 预加载模型 `qwen3:8b` 到内存（`keep_alive=-1` 常驻，首次对话无需等待）           |
-| \[12/12] | 检查数据库：有数据则跳过，不可连接则自动从 `OpsCenter.bak` 还原          |
+| \[1] | 检查 Python 环境                                      |
+| \[2] | 检查 ffmpeg（未安装则提示，存在 `C:\ffmpeg\bin` 则自动加入 PATH）         |
+| \[3] | 检查 Windows 神经网络 TTS 语音（OneCore → SAPI，自动选最佳音色）         |
+| \[4] | 创建虚拟环境 `venv`（如已存在则跳过）                            |
+| \[5] | 安装后端 Python 依赖（`pip install -r requirements.txt`） |
+| \[6] | 检查/下载 sherpa-onnx 离线 TTS 模型 zh-ll（约 115MB，5 音色，已存在则跳过；失败自动降级 SAPI） |
+| \[6b] | 检查/下载扩展 VITS 模型（melo 中英混合女声 / fanchen 男声，可选）         |
+| \[7] | 检查 Node.js 环境                                     |
+| \[8] | 安装前端依赖（`npm install`，如已存在则跳过）                     |
+| \[9] | 检查 Ollama 服务                                      |
+| \[10] | 检查并自动拉取模型 `qwen3:8b`（如已存在则跳过）                     |
+| \[11] | 确保 Ollama 服务在运行（未运行则自动后台启动，轮询等待最多 60s）            |
+| \[12] | 预加载模型 `qwen3:8b` 到内存（`keep_alive=-1` 常驻，首次对话无需等待）           |
+| \[13] | 检查数据库：有数据则跳过，不可连接则自动从 `OpsCenter.bak` 还原          |
 
 > 全部通过后自动启动前端和后端。**在浏览器打开 `http://localhost:5173/` 即可进入系统**；后端 API 地址为 `http://localhost:5000`。关闭 startup.bat 窗口即可停止服务。若 5173 端口被占用，Vite 会自动递增到 5174/5175，请以启动窗口提示的地址为准。
 
@@ -199,7 +201,7 @@ pip install pywin32  # 推荐安装以获得 SAPI 语音支持（离线）
 # 1. 创建英文路径模型目录
 mkdir C:\sherpa-tts
 
-# 2. 下载模型（GitHub 下载，可能需要代理）
+# 2. 下载基础模型（GitHub 下载，可能需要代理）
 curl -L -o C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 ^
   https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2
 
@@ -207,13 +209,28 @@ curl -L -o C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 ^
 tar -xf C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 -C C:\sherpa-tts
 ```
 
+**扩展音色模型（可选）**：额外下载可增加"中英混合女声（Melo）"与"男声（繁辰）"两个音色模型，共约 230MB：
+
+```powershell
+# vits-melo-tts-zh_en —— 中英混合女声（推荐，默认音色）
+curl -L -o C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2 ^
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2
+tar -xf C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2 -C C:\sherpa-tts
+
+# vits-zh-hf-fanchen-wnj —— 男声
+curl -L -o C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2 ^
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-zh-hf-fanchen-wnj.tar.bz2
+tar -xf C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2 -C C:\sherpa-tts
+```
+
 > 模型目录可通过环境变量 `SHERPA_TTS_DIR` 覆盖（默认 `C:\sherpa-tts\sherpa-onnx-vits-zh-ll`）。
 > 未下载模型时，系统自动降级为 Windows SAPI 语音（离线兜底）。
+> 多模型由 `backend/tts_service.py` 的 `SHERPA_MODELS` 注册表管理，自动枚举音色；**默认音色为 Melo 中英混合女声（sherpa-melo-0）**，可在前端"设置 → 音色"中切换。
 
 ### 4. 配置 SQL Server 数据库
 
 - 创建登录用户 `ai_ops_user`，设置密码为 `Ops1234`，并授予其对 `OpsCenter` 数据库的访问权限。
-- 使用 SQL Server Management Studio（SSMS）还原数据库备份：右键「数据库」→「还原数据库」，选择提供的 `OpsCenter.bak` 备份文件完成还原。
+- 使用 SQL Server Management Studio（SSMS）还原数据库备份：右键「数据库」→「还原数据库」，选择本地的 `OpsCenter.bak` 备份文件完成还原（⚠️ 该文件已从 GitHub 撤下，需向作者获取）。
 - 连接配置已内置在 `backend/db_service.py`（第 26-34 行）：`127.0.0.1 / OpsCenter / ai_ops_user / Ops1234`，与上一步创建的用户一致，**无需修改**。
 - 数据库还原完成后即可正常使用，无需手动执行建表和种子数据脚本。
 
@@ -251,7 +268,7 @@ npm install
 ├── startup.bat                    # 一键启动脚本（环境检查 + 依赖安装 + 启动前后端）
 ├── _db_setup.py                   # 数据库检查与自动还原工具（startup.bat 调用）
 ├── _install_windows_tts.bat       # Windows 中文语音包安装脚本（需管理员运行，可选）
-├── OpsCenter.bak                  # 数据库备份文件（还原数据库用）
+├── OpsCenter.bak                  # 数据库备份（本地还原用；⚠️ 含敏感数据，不随 Git 推送）
 ├── readme.md                      # 使用文档
 ├── images/                        # 文档截图资源
 ├── archive/                       # 归档区
@@ -340,10 +357,10 @@ npm install
 
 - **ASR 语音识别**：基于阿里达摩院的 FunASR（`paraformer-zh` 模型），实现完全离线的中文识别；前端上传 WebM 音频，后端经 ffmpeg 转 WAV 处理。
 - **TTS 语音合成**：三引擎方案，**默认全离线**：
-  - `sherpa-onnx VITS`（离线神经网络，音质最佳，5 个中文音色，模型需下载）
+  - `sherpa-onnx VITS`（离线神经网络，音质最佳，**7 个中文音色**：苏樱雪/古念/傅诗雨/冰娇/霸总 + Melo 中英混合女声 + 繁辰男声，模型需下载，多模型由 `SHERPA_MODELS` 注册表管理）
   - `Windows SAPI`（系统自带，离线兜底，自动枚举已安装语音）
   - `edge-tts`（微软神经网络，在线，设置 `TTS_MODE=auto` 后可选）
-  - 支持多音色切换与 0.5x - 2.0x 语速调节。
+  - **默认音色为 Melo 中英混合女声（sherpa-melo-0）**；支持多音色切换与 0.5x - 2.0x 语速调节。
 - **交互模式**：
 
       1.手动录音：点击控制录音，过程实时显示文字转写。

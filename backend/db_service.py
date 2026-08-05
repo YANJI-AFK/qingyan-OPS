@@ -570,10 +570,13 @@ def get_tickets_page(
     status: str = None,
     priority: str = None,
     assignee: str = None,
+    date_start: str = None,
+    date_end: str = None,
 ) -> dict:
     """
     多条件分页查询工单（前端工单列表页使用）
     所有过滤条件都可空；空时走"全部"路径
+    date_start / date_end: YYYY-MM-DD 格式，按 create_time 列过滤
     返回：{"data": [tickets...], "total": N, "page": p, "limit": l, "total_pages": tp}
     """
     # 1) 动态 SQL：WHERE 1=1 起步 + 参数化（pyodbc 风格 ? 占位）
@@ -588,6 +591,12 @@ def get_tickets_page(
     if assignee and assignee != "全部":
         where_sql += " AND assignee = ?"
         sql_params.append(assignee)
+    if date_start:
+        where_sql += " AND create_time >= ?"
+        sql_params.append(date_start.strip())
+    if date_end:
+        where_sql += " AND create_time <= ?"
+        sql_params.append(date_end.strip() + " 23:59:59")
     if keyword:
         # 关键词同时模糊匹配 title / description（缺 desc 则仅 title）
         where_sql += " AND (title LIKE ? OR description LIKE ?)"

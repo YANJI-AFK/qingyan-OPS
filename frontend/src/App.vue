@@ -337,11 +337,14 @@ function setSpeed(v: number) {
 }
 
 // ========== 音色控制 ==========
+// 默认音色：VITS 中英混合 Melo女声（sherpa-melo-0）
+const DEFAULT_VOICE = 'sherpa-melo-0'
 const availableVoices = ref<{ id: string; name: string; gender: string }[]>([])
-const selectedVoice = ref(localStorage.getItem('litevox_voice') || 'sherpa-0')
+const selectedVoice = ref(localStorage.getItem('litevox_voice') || DEFAULT_VOICE)
 function setVoice(v: string) {
   selectedVoice.value = v
   localStorage.setItem('litevox_voice', v)
+  localStorage.setItem('litevox_voice_manual', '1') // 标记用户手动选择过音色
 }
 // 加载语音列表
 async function loadVoices() {
@@ -352,6 +355,29 @@ async function loadVoices() {
       availableVoices.value = [
         { id: 'default', name: '系统默认', gender: 'male' },
       ]
+    }
+    const sapiVoices = availableVoices.value.filter(v => v.id.startsWith('sapi-'))
+    const hasDefault = availableVoices.value.some(v => v.id === DEFAULT_VOICE)
+    // 自动选择规则：
+    //   未手动选择过 → 默认使用 Melo女声（sherpa-melo-0），不可用时回退最佳 SAPI
+    //   手动选择过 → 尊重用户选择，仅当原音色失效时回退到 Melo / 最佳 SAPI
+    const manual = localStorage.getItem('litevox_voice_manual') === '1'
+    if (!manual && (hasDefault || sapiVoices.length > 0)) {
+      const target = hasDefault ? DEFAULT_VOICE : sapiVoices[0].id
+      if (selectedVoice.value !== target) {
+        selectedVoice.value = target
+        localStorage.setItem('litevox_voice', target)
+      }
+    } else if (!availableVoices.value.some(v => v.id === selectedVoice.value)) {
+      // 原音色已失效（如 sherpa 模型缺失 / 音色被卸载）
+      if (hasDefault) {
+        selectedVoice.value = DEFAULT_VOICE
+        localStorage.setItem('litevox_voice', DEFAULT_VOICE)
+      } else if (sapiVoices.length > 0) {
+        const best = sapiVoices[0].id
+        selectedVoice.value = best
+        localStorage.setItem('litevox_voice', best)
+      }
     }
   } catch {
     availableVoices.value = [{ id: 'default', name: '系统默认', gender: 'male' }]
@@ -410,12 +436,19 @@ async function playTTSChain(texts: string[]) {
           rate: ttsRate.value,
           voice: selectedVoice.value,
         }, { responseType: 'blob' })
-          .then(res => {
+          .then(async res => {
             const url = URL.createObjectURL(res.data)
             const a = new Audio(url)
             a.volume = volume.value
             a.onended = () => { URL.revokeObjectURL(url); resolve() }
             a.onerror = () => { URL.revokeObjectURL(url); resolve() }
+            // 等待音频数据加载完成再播放，杜绝吞开头字
+            if (a.readyState < 3) {
+              await new Promise<void>(r => {
+                a.addEventListener('loadeddata', () => r(), { once: true })
+                a.load()
+              })
+            }
             a.play().catch(() => resolve())
           })
           .catch(() => resolve())

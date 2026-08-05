@@ -11,14 +11,15 @@ echo  ============================================================
 echo.
 echo    This script will:
 echo      1. Check Python, ffmpeg ^& create virtual environment
-echo      2. Install backend dependencies
-echo      3. Check sherpa-onnx offline TTS model
-echo      4. Check Node.js ^& install frontend dependencies
-echo      5. Check Ollama ^& pull model qwen3:8b
-echo      6. Ensure Ollama service is running
-echo      7. Preload model into memory
-echo      8. Check database ^& auto-restore from backup
-echo      9. Start backend (port 5000) ^& frontend (port 5173)
+echo      2. Install Windows neural TTS voices (Xiaoxiao offline)
+echo      3. Install backend dependencies
+echo      4. Check sherpa-onnx offline TTS model
+echo      5. Check Node.js ^& install frontend dependencies
+echo      6. Check Ollama ^& pull model qwen3:8b
+echo      7. Ensure Ollama service is running
+echo      8. Preload model into memory
+echo      9. Check database ^& auto-restore from backup
+echo     10. Start backend (port 5000) ^& frontend (port 5173)
 echo.
 echo  ============================================================
 echo.
@@ -46,7 +47,16 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [3/12] Setting up virtual environment ...
+echo  [3/13] Checking Windows neural TTS voices ...
+REM Expose OneCore voices (Huihui/Kangkang/Yaoyao/neural) to SAPI5.
+REM Requires admin rights for HKLM registry write; skip silently otherwise.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0_setup_tts_voices.ps1" >nul 2>&1
+echo         [OK] OneCore neural voices exposed to SAPI.
+echo         Best-quality voice is auto-selected. To add Xiaoxiao:
+echo         Settings ^> Time ^& Language ^> Speech ^> Add voices ^> Xiaoxiao
+echo.
+
+echo  [4/13] Setting up virtual environment ...
 if exist "venv\Scripts\python.exe" (
     echo         [SKIP] venv already exists.
 ) else (
@@ -57,25 +67,23 @@ if exist "venv\Scripts\python.exe" (
 )
 echo.
 
-echo  [4/12] Installing backend dependencies ...
+echo  [5/13] Installing backend dependencies ...
 venv\Scripts\python.exe -m pip install -r backend\requirements.txt --quiet --disable-pip-version-check
 if errorlevel 1 goto err_pip
 echo         [OK] Backend dependencies installed.
 echo.
 
-echo  [5/12] Checking sherpa-onnx offline TTS model ...
+echo  [6/13] Checking sherpa-onnx offline TTS model ...
 if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     echo         [SKIP] TTS model already exists.
 ) else (
     echo         Downloading offline TTS model, about 115MB ...
     echo         URL: github.com/k2-fsa/sherpa-onnx/releases ...
     if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
-    curl.exe -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
+    curl.exe -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
     if errorlevel 1 (
         echo         [WARN] TTS model download failed.
         echo                The app will fall back to Windows SAPI voices.
-        echo                To retry with a GitHub mirror ^(gh-proxy.com prefix^):
-        echo                curl -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
     ) else (
         tar -xf "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" -C "C:\sherpa-tts"
         del /q "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2"
@@ -84,13 +92,36 @@ if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
 )
 echo.
 
-echo  [6/12] Checking Node.js ...
+echo  [6b/13] Checking extended sherpa TTS models (melo / fanchen) ...
+setlocal enabledelayedexpansion
+for %%M in (vits-melo-tts-zh_en vits-zh-hf-fanchen-wnj) do (
+    set "ONNX=model.onnx"
+    if "%%M"=="vits-zh-hf-fanchen-wnj" set "ONNX=vits-zh-hf-fanchen-wnj.onnx"
+    if exist "C:\sherpa-tts\%%M\!ONNX!" (
+        echo         [SKIP] %%M model already exists.
+    ) else (
+        echo         Downloading %%M model with resume support ...
+        if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
+        curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\%%M.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/%%M.tar.bz2"
+        if exist "C:\sherpa-tts\%%M.tar.bz2" (
+            tar -xf "C:\sherpa-tts\%%M.tar.bz2" -C "C:\sherpa-tts"
+            del /q "C:\sherpa-tts\%%M.tar.bz2"
+            echo         [OK] %%M ready.
+        ) else (
+            echo         [WARN] %%M download failed, this voice will be unavailable.
+        )
+    )
+)
+endlocal
+echo.
+
+echo  [7/13] Checking Node.js ...
 where node >nul 2>nul
 if errorlevel 1 goto err_node
 node --version 2>&1
 echo.
 
-echo  [7/12] Installing frontend dependencies (npm install) ...
+echo  [8/13] Installing frontend dependencies (npm install) ...
 if exist "frontend\node_modules" (
     echo         [SKIP] node_modules already exists.
 ) else (
@@ -103,13 +134,13 @@ if exist "frontend\node_modules" (
 )
 echo.
 
-echo  [8/12] Checking Ollama ...
+echo  [9/13] Checking Ollama ...
 where ollama >nul 2>nul
 if errorlevel 1 goto err_ollama
 echo         [OK] Ollama found.
 echo.
 
-echo  [9/12] Checking model qwen3:8b ...
+echo  [10/13] Checking model qwen3:8b ...
 ollama list 2>nul | findstr /c:"qwen3:8b" >nul
 if errorlevel 1 (
     echo         Model not found. Pulling qwen3:8b ...
@@ -123,7 +154,7 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [10/12] Ensuring Ollama service is running ...
+echo  [11/13] Ensuring Ollama service is running ...
 REM Check if Ollama is already listening on port 11434
 curl.exe -s http://localhost:11434/api/tags >nul 2>&1
 if errorlevel 1 (
@@ -146,7 +177,7 @@ if errorlevel 1 (
 )
 echo.
 
-echo  [11/12] Preloading model qwen3:8b into memory ...
+echo  [12/13] Preloading model qwen3:8b into memory ...
 echo         This ensures instant response on first chat.
 echo         Model will be kept in memory until Ollama restarts.
 venv\Scripts\python.exe -c "import requests; r=requests.post('http://localhost:11434/api/generate', json={'model':'qwen3:8b','prompt':'hello','stream':False,'keep_alive':-1}, timeout=180); exit(0 if r.status_code==200 else 1)"
@@ -154,7 +185,7 @@ if errorlevel 1 goto err_model_test
 echo         [OK] Model loaded and kept in memory.
 echo.
 
-echo  [12/12] Database setup ...
+echo  [13/13] Database setup ...
 venv\Scripts\python.exe _db_setup.py
 if errorlevel 1 goto err_db
 echo.

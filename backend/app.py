@@ -879,8 +879,9 @@ def tickets_stat():
 @app.route("/api/tickets/page", methods=["GET"])
 def tickets_page():
     """
-    分页查询工单列表（支持多条件筛选 + 关键词）
-    ?page=1&limit=10&keyword=xxx&status=未完成&priority=高&assignee=张三
+    分页查询工单列表（支持多条件筛选 + 关键词 + 日期）
+    ?page=1&limit=10&keyword=xxx&status=未完成&priority=高&assignee=张三&date=2026-07-05
+    ?page=1&limit=10&date_start=2026-07-01&date_end=2026-07-31
     """
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
@@ -888,10 +889,18 @@ def tickets_page():
     status = request.args.get("status", "", type=str).strip() or None
     priority = request.args.get("priority", "", type=str).strip() or None
     assignee = request.args.get("assignee", "", type=str).strip() or None
+    # 日期参数：前端以 date（单日）或 date_start+date_end（时间段）发送
+    date = request.args.get("date", "", type=str).strip() or None
+    date_start = request.args.get("date_start", "", type=str).strip() or None
+    date_end = request.args.get("date_end", "", type=str).strip() or None
+    # 统一为 start/end：单日模式时 date 同时充当起止
+    if date:
+        date_start = date_end = date
     try:
         result = db_service.get_tickets_page(
             page=page, limit=limit, keyword=keyword,
             status=status, priority=priority, assignee=assignee,
+            date_start=date_start, date_end=date_end,
         )
         return jsonify(result)
     except Exception as e:
