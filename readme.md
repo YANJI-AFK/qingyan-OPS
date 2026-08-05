@@ -188,10 +188,10 @@ pip install pywin32  # 推荐安装以获得 SAPI 语音支持（离线）
 - 后端核心依赖包含：`flask`, `flask-cors` (Web 框架)。
 - `requests` (调用 Ollama), `pyodbc` (SQL Server 连接)。
 - `funasr`, `modelscope` (离线语音识别)。
-- `soundfile`, `pyaudio` (音频处理与采集)。
 - `sherpa-onnx`, `numpy` (离线神经网络 TTS，音质最佳)。
 - `pyttsx3`, `pywin32` (SAPI 语音合成兜底，离线)。
 - `edge-tts` (在线 TTS，可选，设置 `TTS_MODE=auto` 后启用)。
+- `psutil` (实时 CPU/内存监控指标读取)。
 
 ### 3. 下载 sherpa-onnx 离线语音模型（可选但推荐）
 
@@ -365,7 +365,7 @@ npm install
 
       1.手动录音：点击控制录音，过程实时显示文字转写。
 
-      2.连续聆听：通过 VAD 自动检测语音，静音 1.8 秒后自动结束识别。
+      2.连续聆听：通过 VAD 自动检测语音，静音 2.4 秒后自动结束识别。
 
 ***
 
