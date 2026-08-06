@@ -76,7 +76,7 @@ echo.
 echo  [6/13] Checking sherpa-onnx offline TTS models ...
 setlocal enabledelayedexpansion
 
-REM --- zh-ll (5音色, 115MB) ---
+REM --- zh-ll (5 voices, 115MB) ---
 if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     echo         [SKIP] zh-ll model already exists.
 ) else (
@@ -92,7 +92,7 @@ if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
     )
 )
 
-REM --- melo (中英混合女声, 默认音色, 约115MB) ---
+REM --- melo (zh-EN mixed female, default voice, ~115MB) ---
 if exist "C:\sherpa-tts\vits-melo-tts-zh_en\model.onnx" (
     echo         [SKIP] melo model already exists.
 ) else (
@@ -115,7 +115,7 @@ echo  [6b/13] Checking optional extended sherpa TTS model (fanchen male voice) .
 if exist "C:\sherpa-tts\vits-zh-hf-fanchen-wnj\vits-zh-hf-fanchen-wnj.onnx" (
     echo         [SKIP] fanchen model already exists.
 ) else (
-    echo         Downloading fanchen model (optional male voice) ...
+    echo         Downloading fanchen model ^(optional male voice^) ...
     if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
     curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-zh-hf-fanchen-wnj.tar.bz2"
     if exist "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" (
