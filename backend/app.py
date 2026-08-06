@@ -434,15 +434,18 @@ def execute_action_fsm(intent_data: dict, user_text: str):
             filter_priority = params.get("priority", "")
             start_date = params.get("start_date") or None
             end_date = params.get("end_date") or None
-            if filter_status and filter_priority:
-                tickets = db_service.get_tickets(status=filter_status, priority=filter_priority)
-                api_result = {"total": len(tickets), "status": f"{filter_priority}优先级·{filter_status}"}
-            elif filter_status:
-                tickets = db_service.get_tickets(status=filter_status)
-                api_result = {"total": len(tickets), "status": filter_status}
-            elif filter_priority:
-                tickets = db_service.get_tickets(priority=filter_priority)
-                api_result = {"total": len(tickets), "status": f"{filter_priority}优先级"}
+            if filter_status or filter_priority:
+                # 用 search_tickets_dynamic 支持 status+priority+date 任意组合
+                sp = {}
+                if filter_status: sp["status"] = filter_status
+                if filter_priority: sp["priority"] = filter_priority
+                if start_date: sp["start_date"] = start_date
+                if end_date: sp["end_date"] = end_date
+                result = db_service.search_tickets_dynamic(sp)
+                parts = []
+                if filter_status: parts.append(filter_status)
+                if filter_priority: parts.append(f"{filter_priority}优先级")
+                api_result = {"total": result["total"], "status": "·".join(parts)}
             else:
                 api_result = db_service.get_tickets_stat(
                     start_date=start_date, end_date=end_date

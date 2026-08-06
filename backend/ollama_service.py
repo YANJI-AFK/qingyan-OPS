@@ -66,7 +66,13 @@ SYSTEM_PROMPT = (
     '  有多少工单 -> {"intent":"query","api":"tickets_stat","params":{}}\n'
     '  有多少运维人员 -> {"intent":"staff_query","api":"staff_count","params":{}}\n'
     '  查人员数量 -> {"intent":"staff_query","api":"staff_count","params":{}}\n'
-    '  最近一周完成了多少 -> {"intent":"query","api":"tickets_stat","params":{"start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  最近一周完成了多少 -> {"intent":"query","api":"tickets_stat","params":{"status":"已完成","start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  最近一周有多少已完成工单 -> {"intent":"query","api":"tickets_stat","params":{"status":"已完成","start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  上周有多少未完成工单 -> {"intent":"query","api":"tickets_stat","params":{"status":"未完成","start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  最近一个月有多少进行中工单 -> {"intent":"query","api":"tickets_stat","params":{"status":"进行中","start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  7月27日有几个工单 -> {"intent":"query","api":"tickets_stat","params":{"start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  7月31日一共有几个工单 -> {"intent":"query","api":"tickets_stat","params":{"start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
+    '  7月27日有多少已完成工单 -> {"intent":"query","api":"tickets_stat","params":{"status":"已完成","start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD"}}\n'
     '  你好 -> {"intent":"greeting","params":{}}\n'
     '  张伟有多少高优先级的工单 -> {"intent":"search","api":"tickets_search","params":{"assignee":"张伟","priority":"高"}}\n'
     '  王强有多少未完成的工单 -> {"intent":"search","api":"tickets_search","params":{"assignee":"王强","status":"未完成"}}\n'
@@ -108,8 +114,14 @@ SYSTEM_PROMPT = (
     "时间规则（根据当前日期计算具体日期）：\n"
     "- 今天 -> end_date = {{CURRENT_DATE}}\n"
     "- 最近N天 -> start_date = 今天往前N天, end_date = 今天\n"
-    "- 最近一周/上周/这周/本周 -> start_date = 7天前, end_date = 今天\n"
+    "- 最近一周 -> start_date = 今天往前7天, end_date = 今天\n"
+    "- 上周 -> start_date = 上周一, end_date = 上周日\n"
+    "- 这周/本周 -> start_date = 本周一, end_date = 今天\n"
+    "- 最近一个月 -> start_date = 今天往前30天, end_date = 今天\n"
     "- 本月 -> start_date = 本月1日, end_date = 今天\n"
+    "- 上月 -> start_date = 上月1日, end_date = 上月最后一天\n"
+    "- X月份 -> start_date = X月1日, end_date = X月最后一天\n"
+    "- X月X日/某月某日 -> start_date = end_date = 该日期（年取当前年）\n"
 )
 
 # 数据润色 Prompt（用于把 API 返回的 JSON 数据变成自然语言）
