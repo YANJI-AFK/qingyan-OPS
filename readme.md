@@ -101,7 +101,7 @@ git clone https://github.com/YANJI-AFK/qingyan-OPS.git
 cd qingyan-OPS
 ```
 
-### 前期准备：分 3 步完成（共 6 项）
+### 前期准备：分 3 步完成（共 7 项）
 
 > 顺序很重要：**先安装软件 → 再配置系统 PATH → 最后准备数据库**，全部完成后才能双击 `startup.bat`。
 > 因为 `startup.bat` 启动时会用 `where python / node / ollama` 检测命令，**软件装了但没配置 PATH 会直接报错退出**。
@@ -113,7 +113,7 @@ cd qingyan-OPS
 | 1  | Python     | 3.12+           | 安装时勾选 "Add Python to PATH"             |
 | 2  | Node.js    | 22.18+ / 24.12+ | 安装时默认自动加入 PATH                         |
 | 3  | Ollama     | 最新版             | 从 <https://ollama.com> 下载安装，启动后保持运行    |
-| 4  | SQL Server | 2019+           | 含 **ODBC Driver 17 for SQL Server** 驱动 |
+| 4  | SQL Server | 2019+           | 含 **ODBC Driver 17 for SQL Server** 驱动；安装后需用 SQL Server Configuration Manager 启用 TCP/IP 协议并设置 1433 端口 |
 | 5  | ffmpeg     | 最新稳定版           | 解压到如 `C:\ffmpeg`（FunASR 必需）            |
 
 **② 配置系统 PATH**
@@ -130,14 +130,15 @@ cd qingyan-OPS
 python --version
 node --version
 ffmpeg -version
+ollama --version
 ```
 
 **③ 准备数据库**
 
 | 序号 | 需要准备 | 说明                                                              |
 | -- | ---- | --------------------------------------------------------------- |
-| 6  | 登录用户 | SQL Server 中创建 `ai_ops_user`（密码 `Ops1234`），授予 `OpsCenter` 库访问权限 |
-| 7  | 备份文件 | 将 `OpsCenter.bak` 放到项目根目录 ⚠️ **该文件含敏感数据**，需向项目作者获取或使用你自己的本地备份 |
+| 6  | 备份文件 | 将 `OpsCenter.bak` 放到项目根目录 ⚠️ **该文件含敏感数据**，需向项目作者获取或使用你自己的本地备份 |
+| 7  | 登录用户 | SQL Server 中创建 `ai_ops_user`（密码 `Ops1234`）。首次运行 `startup.bat` 会尝试自动还原数据库；若提示权限不足，请用 SSMS 以 sa 身份手动还原 `OpsCenter.bak`，再为 `ai_ops_user` 授予 `OpsCenter` 库访问权限 |
 
 ### 启动方式：双击 `startup.bat`
 
@@ -169,7 +170,7 @@ ffmpeg -version
 ### 1. 创建 Python 虚拟环境
 
 ```powershell
-cd "F:\基于大模型驱动的数字人智能助手"
+cd qingyan-OPS
 python -m venv venv
 
 ```
@@ -182,7 +183,6 @@ python -m venv venv
 venv\Scripts\activate
 cd backend
 pip install -r requirements.txt
-pip install pywin32  # 推荐安装以获得 SAPI 语音支持（离线）
 ```
 
 - 后端核心依赖包含：`flask`, `flask-cors` (Web 框架)。

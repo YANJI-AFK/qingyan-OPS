@@ -24,13 +24,13 @@ echo.
 echo  ============================================================
 echo.
 
-echo  [1/12] Checking Python ...
+echo  [1/13] Checking Python ...
 where python >nul 2>nul
 if errorlevel 1 goto err_python
 python --version 2>&1
 echo.
 
-echo  [2/12] Checking ffmpeg ...
+echo  [2/13] Checking ffmpeg ...
 where ffmpeg >nul 2>nul
 if errorlevel 1 (
     if exist "C:\ffmpeg\bin\ffmpeg.exe" (
@@ -98,7 +98,7 @@ if exist "C:\sherpa-tts\vits-melo-tts-zh_en\model.onnx" (
 ) else (
     echo         Downloading melo TTS model ^(default voice, mid-EN mixed^), about 115MB ...
     if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
-    curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2"
+    curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2"
     if exist "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" (
         tar -xf "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" -C "C:\sherpa-tts"
         del /q "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2"
@@ -117,7 +117,7 @@ if exist "C:\sherpa-tts\vits-zh-hf-fanchen-wnj\vits-zh-hf-fanchen-wnj.onnx" (
 ) else (
     echo         Downloading fanchen model ^(optional male voice^) ...
     if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
-    curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-zh-hf-fanchen-wnj.tar.bz2"
+    curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-zh-hf-fanchen-wnj.tar.bz2"
     if exist "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" (
         tar -xf "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" -C "C:\sherpa-tts"
         del /q "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2"
