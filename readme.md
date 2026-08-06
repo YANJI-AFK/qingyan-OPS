@@ -150,8 +150,8 @@ ffmpeg -version
 | \[3]  | 检查 Windows 神经网络 TTS 语音（OneCore → SAPI，自动选最佳音色）                     |
 | \[4]  | 创建虚拟环境 `venv`（如已存在则跳过）                                             |
 | \[5]  | 安装后端 Python 依赖（`pip install -r requirements.txt`）                  |
-| \[6]  | 检查/下载 sherpa-onnx 离线 TTS 模型 zh-ll（约 115MB，5 音色，已存在则跳过；失败自动降级 SAPI） |
-| \[6b] | 检查/下载扩展 VITS 模型（melo 中英混合女声 / fanchen 男声，可选）                       |
+| \[6]  | 检查/下载 sherpa-onnx 离线 TTS 模型 zh-ll和melo（约 330MB，5 音色，已存在则跳过；失败自动降级 SAPI） |
+| \[6b] | 检查/下载扩展 VITS 模型（  fanchen 男声，可选）                       |
 | \[7]  | 检查 Node.js 环境                                                      |
 | \[8]  | 安装前端依赖（`npm install`，如已存在则跳过）                                      |
 | \[9]  | 检查 Ollama 服务                                                       |
