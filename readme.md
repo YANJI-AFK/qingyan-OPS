@@ -2,6 +2,8 @@
 
 # 🚀 轻言OPS — 基于大模型驱动的数字人智能助手
 
+<div align="center">
+
 ![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square\&logo=python\&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.1-000000?style=flat-square\&logo=flask\&logoColor=white)
 ![Vue.js](https://img.shields.io/badge/Vue.js-3.5%2B-42B883?style=flat-square\&logo=vue.js\&logoColor=white)
@@ -11,6 +13,8 @@
 ![FunASR](https://img.shields.io/badge/FunASR-Offline%20ASR-F59E0B?style=flat-square)
 ![ECharts](https://img.shields.io/badge/ECharts-6.0-2563EB?style=flat-square\&logo=apache-echarts\&logoColor=white)
 ![离线运行](https://img.shields.io/badge/%E5%85%A8%E7%A6%BB%E7%BA%BF-Offline-10B981?style=flat-square)
+
+</div>
 
 > 运维工单管理 + 语音交互 + 3D 可视化监控大屏，一站式智能运维平台。
 
