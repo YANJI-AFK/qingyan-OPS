@@ -456,6 +456,8 @@ def execute_action_fsm(intent_data: dict, user_text: str):
                 "type": "ticket_stat",
                 "filter_status": filter_status,
                 "filter_priority": filter_priority,
+                "start_date": start_date,
+                "end_date": end_date,
                 "total": api_result.get("total", 0),
                 "status_label": api_result.get("status", ""),
             }

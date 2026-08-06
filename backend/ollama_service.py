@@ -35,9 +35,13 @@ SYSTEM_PROMPT = (
     "5) 排班操作：凡用户说「让XX排某日的早班/下午班/晚班」，intent 必须是 operate、api 必须是 schedule_assign。\n"
     "   日期同样支持阿拉伯数字和中文数字，params 包含 staff_name、shift_date、shift_type。\n"
     "   shift_type 必须是「早班」「下午班」「晚班」「休息」之一。\n"
-    "6) 上下文连续问答：当用户说「其中有多少XX」「里面有XX吗」等指代词时，必须参考【上下文提示】中上一轮的条件。\n"
-    "   例如上一轮查了「未完成工单」共23个，用户接着问「其中有多少高优先级的」，应输出 tickets_stat + status=未完成 + priority=高。\n"
-    "   例如上一轮搜索了「关键词=数据库」的工单共31条，用户接着问「里面有多少未完成的」，应输出 tickets_search + keyword=数据库 + status=未完成。\n"
+    "6) 上下文连续问答：当用户说「其中有多少XX」「里面有多少XX」等指代词时，必须从【上下文提示】中复制上一轮的实际条件值。\n"
+    "   关键规则：\n"
+    "   - 如果【上下文提示】中有 start_date 和 end_date，必须将它们的实际值（如2026-07-07）复制到 params 中，不能用YYYY-MM-DD占位符。\n"
+    "   - 如果【上下文提示】中有 status，也复制到 params。如果上一轮没有 status（如查的是'所有工单'），则不要加 status。\n"
+    "   - 只追加用户新提出的条件（如 priority=高）。\n"
+    "   例如上一轮查了'最近一周未完成工单'，上下文提示含 start_date=2026-07-07, end_date=2026-08-06, status=未完成，用户问'其中有多少高优先级的'，应输出 tickets_stat + status=未完成 + priority=高 + start_date=2026-07-07 + end_date=2026-08-06。\n"
+    "   例如上一轮查了'最近一个月有多少工单'（无status），上下文提示含 start_date=2026-07-07, end_date=2026-08-06，用户问'其中有多少高优先级的'，应输出 tickets_stat + priority=高 + start_date=2026-07-07 + end_date=2026-08-06（不加status）。\n"
     "\n"
     "示例（严格按此格式，不要任何额外文字）：\n"
     '  打开监控 -> {"intent":"navigate","api":"navigate","params":{"target":"/monitor"}}\n'
@@ -61,8 +65,8 @@ SYSTEM_PROMPT = (
     '  有多少未完成的工单 -> {"intent":"query","api":"tickets_stat","params":{"status":"未完成"}}\n'
     '  有多少高优先级的工单 -> {"intent":"query","api":"tickets_stat","params":{"priority":"高"}}\n'
     '  有多少中优先级的工单 -> {"intent":"query","api":"tickets_stat","params":{"priority":"中"}}\n'
-    '  其中有多少高优先级的 -> {"intent":"query","api":"tickets_stat","params":{"status":"未完成","priority":"高"}}\n'
-    '  里面有多少中优先级的 -> {"intent":"query","api":"tickets_stat","params":{"status":"未完成","priority":"中"}}\n'
+    '  其中有多少高优先级的 -> {"intent":"query","api":"tickets_stat","params":{"priority":"高","start_date":"<上下文实际值>","end_date":"<上下文实际值>"}} （如有上轮status也加上）\n'
+    '  里面有多少中优先级的 -> {"intent":"query","api":"tickets_stat","params":{"priority":"中","start_date":"<上下文实际值>","end_date":"<上下文实际值>"}} （如有上轮status也加上）\n'
     '  有多少工单 -> {"intent":"query","api":"tickets_stat","params":{}}\n'
     '  有多少运维人员 -> {"intent":"staff_query","api":"staff_count","params":{}}\n'
     '  查人员数量 -> {"intent":"staff_query","api":"staff_count","params":{}}\n'

@@ -89,11 +89,19 @@ class ChatContext:
                 total = e.get("total", 0)
                 fs = e.get("filter_status", "")
                 fp = e.get("filter_priority", "")
+                sd = e.get("start_date", "")
+                ed = e.get("end_date", "")
                 cond = []
                 if fs: cond.append(fs)
                 if fp: cond.append(f"{fp}优先级")
+                if sd and ed:
+                    if sd == ed:
+                        cond.append(f"日期{sd}")
+                    else:
+                        cond.append(f"日期{sd}至{ed}")
                 cond_str = "·".join(cond) if cond else "所有"
-                lines.append(f"【上下文提示】上一轮用户查询了{cond_str}工单（共{total}个）。如果用户说「其中」「里面」等指代词，请基于上一轮的条件继续筛选。")
+                date_hint = f"（start_date={sd}, end_date={ed}）" if sd and ed else ""
+                lines.append(f"【上下文提示】上一轮用户查询了{cond_str}工单（共{total}个）{date_hint}。如果用户说「其中」「里面」等指代词，必须继承上一轮的全部条件（包括日期、状态），仅追加或替换新条件。")
             elif e.get("type") == "ticket_search":
                 applied = e.get("applied_filters", {})
                 total = e.get("total", 0)
