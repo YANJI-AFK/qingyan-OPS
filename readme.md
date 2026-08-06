@@ -194,30 +194,32 @@ pip install pywin32  # 推荐安装以获得 SAPI 语音支持（离线）
 - `psutil` (实时 CPU/内存监控指标读取)。
 - `pyaudio` (测试脚本依赖，主程序不依赖)。
 
-### 3. 下载 sherpa-onnx 离线语音模型（可选但推荐）
+### 3. 下载 sherpa-onnx 离线语音模型（必需）
 
-默认的离线神经网络 TTS 需要约 115MB 的 VITS 中文模型（含 5 个音色）。**模型必须放在英文路径**（kaldifst 引擎不支持中文路径）：
+默认的离线神经网络 TTS 需要两个模型（共约 230MB）：**zh-ll（5 音色）** + **Melo 中英混合女声（默认音色）**。**模型必须放在英文路径**（kaldifst 引擎不支持中文路径）：
 
 ```powershell
 # 1. 创建英文路径模型目录
 mkdir C:\sherpa-tts
 
-# 2. 下载基础模型（GitHub 下载，可能需要代理）
+# 2. 下载基础模型（zh-ll，5 音色，115MB）
 curl -L -o C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 ^
   https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2
 
 # 3. 解压
 tar -xf C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2 -C C:\sherpa-tts
-```
 
-**扩展音色模型（可选）**：额外下载可增加"中英混合女声（Melo）"与"男声（繁辰）"两个音色模型，共约 230MB：
-
-```powershell
-# vits-melo-tts-zh_en —— 中英混合女声（推荐，默认音色）
+# 4. 下载 Melo 中英混合女声（默认音色，115MB）
 curl -L -o C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2 ^
   https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2
-tar -xf C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2 -C C:\sherpa-tts
 
+# 5. 解压
+tar -xf C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2 -C C:\sherpa-tts
+```
+
+**扩展音色（可选）**：额外下载"男声（繁辰）"模型，约 115MB：
+
+```powershell
 # vits-zh-hf-fanchen-wnj —— 男声
 curl -L -o C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2 ^
   https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-zh-hf-fanchen-wnj.tar.bz2

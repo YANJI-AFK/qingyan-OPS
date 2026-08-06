@@ -73,46 +73,59 @@ if errorlevel 1 goto err_pip
 echo         [OK] Backend dependencies installed.
 echo.
 
-echo  [6/13] Checking sherpa-onnx offline TTS model ...
+echo  [6/13] Checking sherpa-onnx offline TTS models ...
+setlocal enabledelayedexpansion
+
+REM --- zh-ll (5音色, 115MB) ---
 if exist "C:\sherpa-tts\sherpa-onnx-vits-zh-ll\model.onnx" (
-    echo         [SKIP] TTS model already exists.
+    echo         [SKIP] zh-ll model already exists.
 ) else (
-    echo         Downloading offline TTS model, about 115MB ...
-    echo         URL: github.com/k2-fsa/sherpa-onnx/releases ...
+    echo         Downloading zh-ll TTS model, about 115MB ...
     if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
     curl.exe -L -o "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2"
     if errorlevel 1 (
-        echo         [WARN] TTS model download failed.
-        echo                The app will fall back to Windows SAPI voices.
+        echo         [WARN] zh-ll download failed.
     ) else (
         tar -xf "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2" -C "C:\sherpa-tts"
         del /q "C:\sherpa-tts\sherpa-onnx-vits-zh-ll.tar.bz2"
-        echo         [OK] TTS model ready.
+        echo         [OK] zh-ll ready.
     )
 )
+
+REM --- melo (中英混合女声, 默认音色, 约115MB) ---
+if exist "C:\sherpa-tts\vits-melo-tts-zh_en\model.onnx" (
+    echo         [SKIP] melo model already exists.
+) else (
+    echo         Downloading melo TTS model ^(default voice, mid-EN mixed^), about 115MB ...
+    if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
+    curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2"
+    if exist "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" (
+        tar -xf "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2" -C "C:\sherpa-tts"
+        del /q "C:\sherpa-tts\vits-melo-tts-zh_en.tar.bz2"
+        echo         [OK] melo ready.
+    ) else (
+        echo         [WARN] melo download failed, falling back to zh-ll or SAPI.
+    )
+)
+
+endlocal
 echo.
 
-echo  [6b/13] Checking extended sherpa TTS models (melo / fanchen) ...
-setlocal enabledelayedexpansion
-for %%M in (vits-melo-tts-zh_en vits-zh-hf-fanchen-wnj) do (
-    set "ONNX=model.onnx"
-    if "%%M"=="vits-zh-hf-fanchen-wnj" set "ONNX=vits-zh-hf-fanchen-wnj.onnx"
-    if exist "C:\sherpa-tts\%%M\!ONNX!" (
-        echo         [SKIP] %%M model already exists.
+echo  [6b/13] Checking optional extended sherpa TTS model (fanchen male voice) ...
+if exist "C:\sherpa-tts\vits-zh-hf-fanchen-wnj\vits-zh-hf-fanchen-wnj.onnx" (
+    echo         [SKIP] fanchen model already exists.
+) else (
+    echo         Downloading fanchen model (optional male voice) ...
+    if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
+    curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-zh-hf-fanchen-wnj.tar.bz2"
+    if exist "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" (
+        tar -xf "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2" -C "C:\sherpa-tts"
+        del /q "C:\sherpa-tts\vits-zh-hf-fanchen-wnj.tar.bz2"
+        echo         [OK] fanchen ready.
     ) else (
-        echo         Downloading %%M model with resume support ...
-        if not exist "C:\sherpa-tts" mkdir "C:\sherpa-tts"
-        curl.exe -L --retry 10 --retry-delay 3 --retry-all-errors -C - -o "C:\sherpa-tts\%%M.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/%%M.tar.bz2"
-        if exist "C:\sherpa-tts\%%M.tar.bz2" (
-            tar -xf "C:\sherpa-tts\%%M.tar.bz2" -C "C:\sherpa-tts"
-            del /q "C:\sherpa-tts\%%M.tar.bz2"
-            echo         [OK] %%M ready.
-        ) else (
-            echo         [WARN] %%M download failed, this voice will be unavailable.
-        )
+        echo         [WARN] fanchen download failed, this voice will be unavailable.
     )
 )
-endlocal
 echo.
 
 echo  [7/13] Checking Node.js ...
